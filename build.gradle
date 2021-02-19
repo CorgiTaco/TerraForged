@@ -1,20 +1,8 @@
-buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
-        maven { url "https://repo.spongepowered.org/maven" }
-        maven { url "https://files.minecraftforge.net/maven" }
-    }
-    dependencies {
-        classpath group: "org.spongepowered", name: "mixingradle", version: "0.7-SNAPSHOT", changing: true
-        classpath group: "net.minecraftforge.gradle", name: "ForgeGradle", version: "3.+", changing: true
-    }
+plugins {
+    id 'fabric-loom' version '0.5-SNAPSHOT'
+    id 'maven-publish'
 }
 
-apply plugin: "net.minecraftforge.gradle"
-apply plugin: "org.spongepowered.mixin"
-apply plugin: "maven-publish"
-apply plugin: "eclipse"
 
 group = "com.terraforged"
 version = "${minecraft_version}-${mod_version}${getClassifier()}"
@@ -29,67 +17,54 @@ configurations {
     compile.extendsFrom lib
 }
 
-mixin {
-    add sourceSets.main, "mixin.terraforged.refmap.json"
-}
-
 repositories {
     maven { url "https://io.terraforged.com/repository/maven/" }
-    maven { url "https://www.dogforce-games.com/maven/" }
     mavenCentral()
     jcenter()
 }
 
 // If building from source
 dependencies {
-    minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
-//    lib "com.terraforged:Engine:0.2.0"
-    lib project(":Engine")
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+    mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
+    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
+
+    // Fabric API. This is technically optional, but you probably want it anyway.
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    lib "com.terraforged:Engine:0.2.0"
+    compileOnly "com.google.code.findbugs:jsr305:3.0.2"
+    implementation "com.electronwill.night-config:toml:3.6.2"
+
 }
 
 minecraft {
-    mappings channel: mcp_channel, version: mcp_version
-    accessTransformer = file("src/main/resources/META-INF/accesstransformer.cfg")
-    runs {
-        client {
-            workingDirectory project.file("run/client")
-            property "forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP"
-            property "forge.logging.console.level", "debug"
-            jvmArgs "-Xmx8G", "-Xms6G", "-Ddev", "-Dfml.earlyprogresswindow=false"
-            arg "-mixin.config=mixin.terraforged.json"
-            mods {
-                terraforged {
-                    source sourceSets.main
-                }
-            }
-        }
-        server {
-            workingDirectory project.file("run/server")
-            property "forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP"
-            property "forge.logging.console.level", "debug"
-            jvmArgs "-Xmx8G", "-Xms6G", "-Ddev", "-DvanillaBiomes"
-            arg "-mixin.config=mixin.terraforged.json"
-            mods {
-                terraforged {
-                    source sourceSets.main
-                }
-            }
-        }
-        data {
-            workingDirectory project.file("run/data")
-            property "forge.logging.markers", "SCAN,REGISTRIES,REGISTRYDUMP"
-            property "forge.logging.console.level", "debug"
-            property "fml.earlyprogresswindow", "false"
-            args "--mod", "terraforged", "--server", "--output", file("Module-Data/resources/")
-            jvmArgs "-Xmx4G", "-Xms2G"
-            mods {
-                terraforged {
-                    source sourceSets.main
-                }
-            }
-        }
+    accessWidener = file("src/main/resources/terraforged.aw")
+}
+
+processResources {
+    inputs.property "version", project.version
+
+    filesMatching("fabric.mod.json") {
+        expand "version": project.version
     }
 }
+
+tasks.withType(JavaCompile).configureEach {
+    // ensure that the encoding is set to UTF-8, no matter what the system default is
+    // this fixes some edge cases with special characters not displaying correctly
+    // see http://yodaconditions.net/blog/fix-for-java-file-encoding-problems-with-gradle.html
+    // If Javadoc is generated, this must be specified in that task too.
+    it.options.encoding = "UTF-8"
+
+    // The Minecraft launcher currently installs Java 8 for users, so your mod probably wants to target Java 8 too
+    // JDK 9 introduced a new way of specifying this that will make sure no newer classes or methods are used.
+    // We'll use that if it's available, but otherwise we'll use the older option.
+    def targetVersion = 8
+    if (JavaVersion.current().isJava9Compatible()) {
+        it.options.release = targetVersion
+    }
+}
+
 
 sourceSets {
     main.java {
@@ -148,16 +123,15 @@ jar {
     }
 }
 
-import net.minecraftforge.gradle.common.task.SignJar
-task signJar(type: SignJar, dependsOn: "reobfJar") {
-    onlyIf { project.hasProperty("signing.keystore.path") }
-    keyStore = project.findProperty("signing.keystore.path")
-    storePass = project.findProperty("signing.keystore.pass")
-    alias = project.findProperty("signing.key.name")
-    keyPass = project.findProperty("signing.key.pass")
-    inputFile = jar.archivePath
-    outputFile = jar.archivePath
-}
+//task signJar(type: SignJar, dependsOn: "reobfJar") {
+//    onlyIf { project.hasProperty("signing.keystore.path") }
+//    keyStore = project.findProperty("signing.keystore.path")
+//    storePass = project.findProperty("signing.keystore.pass")
+//    alias = project.findProperty("signing.key.name")
+//    keyPass = project.findProperty("signing.key.pass")
+//    inputFile = jar.archivePath
+//    outputFile = jar.archivePath
+//}
 
 build {
     dependsOn("signJar")

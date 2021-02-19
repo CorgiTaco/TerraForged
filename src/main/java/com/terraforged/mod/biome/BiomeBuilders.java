@@ -27,34 +27,34 @@ package com.terraforged.mod.biome;
 import com.terraforged.mod.biome.utils.BiomeBuilder;
 import com.terraforged.mod.biome.utils.BiomeUtils;
 import com.terraforged.mod.featuremanager.matcher.dynamic.DynamicMatcher;
+import net.fabricmc.fabric.api.biome.v1.OverworldClimate;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.biome.DefaultBiomeFeatures;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.BaseTreeFeatureConfig;
+import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.feature.ConfiguredFeatures;
+import net.minecraft.world.gen.feature.DefaultBiomeFeatures;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.Features;
-import net.minecraftforge.common.BiomeManager;
+import net.minecraft.world.gen.feature.TreeFeatureConfig;
 
 public class BiomeBuilders {
 
     public static BiomeBuilder bryce() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.BADLANDS);
-        builder.type(BiomeManager.BiomeType.DESERT);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.BADLANDS);
+        builder.type(OverworldClimate.DRY);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         // dead bush
-        DefaultBiomeFeatures.withDesertDeadBushes(builder.getSettings());
+        DefaultBiomeFeatures.addDesertDeadBushes(builder.getSettings());
         return builder;
     }
 
     public static BiomeBuilder coldMarsh() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SNOWY_TAIGA);
-        builder.type(BiomeManager.BiomeType.ICY);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SNOWY_TAIGA);
+        builder.type(OverworldClimate.SNOWY);
         builder.downfall(0.5F);
         builder.temperature(0.225F);
         builder.category(Biome.Category.SWAMP);
-        builder.precipitation(Biome.RainType.SNOW);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        builder.precipitation(Biome.Precipitation.SNOW);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         deadBush(builder);
         denseGrass(builder);
         ferns(builder);
@@ -62,15 +62,15 @@ public class BiomeBuilders {
     }
 
     public static BiomeBuilder coldSteppe() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.GIANT_SPRUCE_TAIGA);
-        builder.type(BiomeManager.BiomeType.COOL);
-        builder.precipitation(Biome.RainType.SNOW);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.GIANT_SPRUCE_TAIGA);
+        builder.type(OverworldClimate.COOL);
+        builder.precipitation(Biome.Precipitation.SNOW);
         builder.filterFeatures(
-                DynamicMatcher.config(BaseTreeFeatureConfig.class),
+                DynamicMatcher.config(TreeFeatureConfig.class),
                 DynamicMatcher.feature(Feature.FOREST_ROCK),
                 // red/brown mushrooms
-                DynamicMatcher.of(Features.RED_MUSHROOM_TAIGA),
-                DynamicMatcher.of(Features.BROWN_MUSHROOM_TAIGA)
+                DynamicMatcher.of(ConfiguredFeatures.RED_MUSHROOM_TAIGA),
+                DynamicMatcher.of(ConfiguredFeatures.BROWN_MUSHROOM_TAIGA)
         );
         builder.temperature(0.25F);
         builder.downfall(0.025F);
@@ -81,8 +81,8 @@ public class BiomeBuilders {
     }
 
     public static BiomeBuilder firForest() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.TAIGA);
-        builder.type(BiomeManager.BiomeType.COOL);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.TAIGA);
+        builder.type(OverworldClimate.COOL);
         deadBush(builder);
         denseGrass(builder);
         ferns(builder);
@@ -90,94 +90,94 @@ public class BiomeBuilders {
     }
 
     public static BiomeBuilder flowerPlains() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.FLOWER_FOREST);
-        builder.type(BiomeManager.BiomeType.COOL);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.FLOWER_FOREST);
+        builder.type(OverworldClimate.COOL);
         return builder;
     }
 
     public static BiomeBuilder frozenLake() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.FROZEN_RIVER);
-        builder.type(BiomeManager.BiomeType.ICY);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.FROZEN_RIVER);
+        builder.type(OverworldClimate.SNOWY);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         return builder;
     }
 
     public static BiomeBuilder frozenMarsh() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SNOWY_TAIGA);
-        builder.type(BiomeManager.BiomeType.ICY);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SNOWY_TAIGA);
+        builder.type(OverworldClimate.SNOWY);
         builder.category(Biome.Category.SWAMP);
         builder.downfall(0.15F);
         builder.temperature(0.14999F);
-        builder.precipitation(Biome.RainType.SNOW);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        builder.precipitation(Biome.Precipitation.SNOW);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         return builder;
     }
 
     public static BiomeBuilder lake() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.RIVER);
-        builder.type(BiomeManager.BiomeType.COOL);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.RIVER);
+        builder.type(OverworldClimate.COOL);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         return builder;
     }
 
     public static BiomeBuilder marshland() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SWAMP);
-        builder.type(BiomeManager.BiomeType.COOL);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SWAMP);
+        builder.type(OverworldClimate.COOL);
         builder.temperature(0.7F);
         builder.category(Biome.Category.SWAMP);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         deadBush(builder);
         ferns(builder);
         denseGrass(builder);
-        DefaultBiomeFeatures.withSwampSugarcaneAndPumpkin(builder.getSettings());
+        DefaultBiomeFeatures.addSwampVegetation(builder.getSettings());
         return builder;
     }
 
     public static BiomeBuilder savannaScrub() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SAVANNA);
-        builder.type(BiomeManager.BiomeType.WARM);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SAVANNA);
+        builder.type(OverworldClimate.TEMPERATE);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         deadBush(builder);
         denseGrass(builder);
         return builder;
     }
 
     public static BiomeBuilder shatteredSavannaScrub() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SHATTERED_SAVANNA);
-        builder.type(BiomeManager.BiomeType.WARM);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SHATTERED_SAVANNA);
+        builder.type(OverworldClimate.TEMPERATE);
         deadBush(builder);
         denseGrass(builder);
         return builder;
     }
 
     public static BiomeBuilder snowyFirForest() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SNOWY_TAIGA);
-        builder.type(BiomeManager.BiomeType.ICY);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SNOWY_TAIGA);
+        builder.type(OverworldClimate.SNOWY);
         builder.category(Biome.Category.ICY);
         ferns(builder);
         return builder;
     }
 
     public static BiomeBuilder snowyTaigaScrub() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.SNOWY_TAIGA);
-        builder.type(BiomeManager.BiomeType.ICY);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.SNOWY_TAIGA);
+        builder.type(OverworldClimate.SNOWY);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         ferns(builder);
         return builder;
     }
 
     public static BiomeBuilder steppe() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.GIANT_SPRUCE_TAIGA);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.GIANT_SPRUCE_TAIGA);
         builder.filterFeatures(
-                DynamicMatcher.config(BaseTreeFeatureConfig.class),
+                DynamicMatcher.config(TreeFeatureConfig.class),
                 DynamicMatcher.feature(Feature.FOREST_ROCK),
                 // red/brown mushrooms
-                DynamicMatcher.of(Features.RED_MUSHROOM_TAIGA),
-                DynamicMatcher.of(Features.BROWN_MUSHROOM_TAIGA)
+                DynamicMatcher.of(ConfiguredFeatures.RED_MUSHROOM_TAIGA),
+                DynamicMatcher.of(ConfiguredFeatures.BROWN_MUSHROOM_TAIGA)
         );
-        builder.setParentKey(Biomes.SHATTERED_SAVANNA_PLATEAU);
+        builder.setParentKey(BiomeKeys.SHATTERED_SAVANNA_PLATEAU);
         builder.category(Biome.Category.SAVANNA);
-        builder.copyAmbience(Biomes.SAVANNA);
+        builder.copyAmbience(BiomeKeys.SAVANNA);
         builder.downfall(0.05F);
         builder.temperature(1.2F);
         deadBush(builder);
@@ -186,20 +186,20 @@ public class BiomeBuilders {
     }
 
     public static BiomeBuilder stoneForest() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.JUNGLE);
-        builder.type(BiomeManager.BiomeType.WARM);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.JUNGLE);
+        builder.type(OverworldClimate.TEMPERATE);
         builder.weight(2);
         return builder;
     }
 
     public static BiomeBuilder taigaScrub() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.TAIGA);
-        builder.type(BiomeManager.BiomeType.COOL);
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.TAIGA);
+        builder.type(OverworldClimate.COOL);
         builder.filterFeatures(
-                DynamicMatcher.config(BaseTreeFeatureConfig.class),
+                DynamicMatcher.config(TreeFeatureConfig.class),
                 // red/brown mushrooms
-                DynamicMatcher.of(Features.RED_MUSHROOM_TAIGA),
-                DynamicMatcher.of(Features.BROWN_MUSHROOM_TAIGA)
+                DynamicMatcher.of(ConfiguredFeatures.RED_MUSHROOM_TAIGA),
+                DynamicMatcher.of(ConfiguredFeatures.BROWN_MUSHROOM_TAIGA)
         );
         deadBush(builder);
         denseGrass(builder);
@@ -208,9 +208,9 @@ public class BiomeBuilders {
     }
 
     public static BiomeBuilder warmBeach() {
-        BiomeBuilder builder = BiomeUtils.getBuilder(Biomes.WARM_OCEAN);
-        builder.type(BiomeManager.BiomeType.WARM);
-        builder.filterFeatures(DynamicMatcher.config(BaseTreeFeatureConfig.class));
+        BiomeBuilder builder = BiomeUtils.getBuilder(BiomeKeys.WARM_OCEAN);
+        builder.type(OverworldClimate.TEMPERATE);
+        builder.filterFeatures(DynamicMatcher.config(TreeFeatureConfig.class));
         builder.category(Biome.Category.BEACH);
         builder.temperature(1.0F);
         return builder;
@@ -218,19 +218,19 @@ public class BiomeBuilders {
 
     private static void deadBush(BiomeBuilder builder) {
         // dead bush
-        DefaultBiomeFeatures.withDesertDeadBushes(builder.getSettings());
+        DefaultBiomeFeatures.addDesertDeadBushes(builder.getSettings());
     }
 
     private static void denseGrass(BiomeBuilder builder) {
         // plains grass
-        builder.getSettings().withFeature(GenerationStage.Decoration.VEGETAL_DECORATION, Features.PATCH_GRASS_PLAIN);
+        builder.getSettings().feature(GenerationStep.Feature.VEGETAL_DECORATION, ConfiguredFeatures.PATCH_GRASS_PLAIN);
         // extra grass 1
-        DefaultBiomeFeatures.withNormalGrassPatch(builder.getSettings());
+        DefaultBiomeFeatures.addShatteredSavannaGrass(builder.getSettings());
         // extra grass 2
-        DefaultBiomeFeatures.withSavannaGrass(builder.getSettings());
+        DefaultBiomeFeatures.addSavannaGrass(builder.getSettings());
     }
 
     private static void ferns(BiomeBuilder builder) {
-        DefaultBiomeFeatures.withLargeFern(builder.getSettings());
+        DefaultBiomeFeatures.addLargeFerns(builder.getSettings());
     }
 }

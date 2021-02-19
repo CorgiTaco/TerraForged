@@ -25,13 +25,16 @@
 package com.terraforged.mod.util.nbt;
 
 import com.terraforged.engine.serialization.serializer.AbstractWriter;
+import com.terraforged.mod.client.gui.page.Page;
 import net.minecraft.nbt.*;
-import net.minecraftforge.common.util.Constants;
 
-public class NBTWriter extends AbstractWriter<INBT, CompoundNBT, ListNBT, NBTWriter> {
+public class NBTWriter extends AbstractWriter<Tag, CompoundTag, ListTag, NBTWriter> {
 
-    public CompoundNBT compound() {
-        return (CompoundNBT) get();
+    public static final int TAG_LIST = 9;
+
+
+    public CompoundTag compound() {
+        return (CompoundTag) get();
     }
 
     @Override
@@ -40,62 +43,62 @@ public class NBTWriter extends AbstractWriter<INBT, CompoundNBT, ListNBT, NBTWri
     }
 
     @Override
-    protected boolean isObject(INBT value) {
-        return value.getId() == Constants.NBT.TAG_COMPOUND;
+    protected boolean isObject(Tag value) {
+        return value.getType() == Page.TAG_COMPOUND;
     }
 
     @Override
-    protected boolean isArray(INBT value) {
-        return value.getId() == Constants.NBT.TAG_LIST;
+    protected boolean isArray(Tag value) {
+        return value.getType() == TAG_LIST;
     }
 
     @Override
-    protected void add(CompoundNBT parent, String key, INBT value) {
+    protected void add(CompoundTag parent, String key, Tag value) {
         parent.put(key, value);
     }
 
     @Override
-    protected void add(ListNBT parent, INBT value) {
+    protected void add(ListTag parent, Tag value) {
         parent.add(value);
     }
 
     @Override
-    protected CompoundNBT createObject() {
-        return new CompoundNBT();
+    protected CompoundTag createObject() {
+        return new CompoundTag();
     }
 
     @Override
-    protected ListNBT createArray() {
-        return new ListNBT();
+    protected ListTag createArray() {
+        return new ListTag();
     }
 
     @Override
-    protected INBT closeObject(CompoundNBT o) {
+    protected Tag closeObject(CompoundTag o) {
         return o;
     }
 
     @Override
-    protected INBT closeArray(ListNBT a) {
+    protected Tag closeArray(ListTag a) {
         return a;
     }
 
     @Override
-    protected INBT create(String value) {
-        return StringNBT.valueOf(value);
+    protected Tag create(String value) {
+        return StringTag.of(value);
     }
 
     @Override
-    protected INBT create(int value) {
-        return IntNBT.valueOf(value);
+    protected Tag create(int value) {
+        return IntTag.of(value);
     }
 
     @Override
-    protected INBT create(float value) {
-        return FloatNBT.valueOf(value);
+    protected Tag create(float value) {
+        return FloatTag.of(value);
     }
 
     @Override
-    protected INBT create(boolean value) {
-        return ByteNBT.valueOf(value);
+    protected Tag create(boolean value) {
+        return ByteTag.of(value);
     }
 }

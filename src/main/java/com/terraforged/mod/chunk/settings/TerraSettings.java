@@ -36,7 +36,6 @@ import com.terraforged.mod.featuremanager.util.codec.Codecs;
 import com.terraforged.mod.util.DataUtils;
 import com.terraforged.mod.util.nbt.DynamicReader;
 import com.terraforged.mod.util.nbt.DynamicWriter;
-import net.minecraft.world.gen.settings.DimensionStructuresSettings;
 
 import java.io.*;
 

@@ -24,11 +24,11 @@
 
 package com.terraforged.mod.client.gui.element;
 
-import net.minecraft.client.resources.I18n;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextComponent;
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.text.BaseText;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,10 +38,10 @@ public interface Element {
 
     AtomicInteger ID_COUNTER = new AtomicInteger(0);
 
-    default ITextComponent getToolTipText() {
-        TextComponent base = new StringTextComponent("");
+    default Text getToolTipText() {
+        BaseText base = new LiteralText("");
         for (String s : getTooltip()) {
-            base.append(new StringTextComponent(s));
+            base.append(new LiteralText(s));
         }
         return base;
     }
@@ -54,7 +54,7 @@ public interface Element {
         return ID_COUNTER.getAndAdd(1);
     }
 
-    static String getDisplayName(String name, CompoundNBT value) {
+    static String getDisplayName(String name, CompoundTag value) {
         if (name.contains(":")) {
             return name;
         }
@@ -62,26 +62,26 @@ public interface Element {
         if (key.endsWith(".")) {
             return "";
         }
-        return I18n.format(key);
+        return I18n.translate(key);
     }
 
-    static List<String> getToolTip(String name, CompoundNBT value) {
+    static List<String> getToolTip(String name, CompoundTag value) {
         String key = getCommentKey(name, value);
         if (key.endsWith(".")) {
             return Collections.emptyList();
         }
-        return Collections.singletonList(I18n.format(key));
+        return Collections.singletonList(I18n.translate(key));
     }
 
-    static String getDisplayKey(String name, CompoundNBT value) {
+    static String getDisplayKey(String name, CompoundTag value) {
         return "display.terraforged." + getKey(name, value);
     }
 
-    static String getCommentKey(String name, CompoundNBT value) {
+    static String getCommentKey(String name, CompoundTag value) {
         return "tooltip.terraforged." + getKey(name, value);
     }
 
-    static String getKey(String name, CompoundNBT value) {
+    static String getKey(String name, CompoundTag value) {
         return value.getCompound("#" + name).getString("key");
     }
 }

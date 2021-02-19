@@ -27,7 +27,7 @@ package com.terraforged.mod.profiler.watchdog;
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.profiler.timings.TimingStack;
 import com.terraforged.mod.profiler.timings.Top3TimingStack;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 import java.util.concurrent.locks.StampedLock;
 
@@ -36,7 +36,7 @@ class WatchdogCtx implements WatchdogContext {
     protected static final ContextQueue QUEUE = new ContextQueue();
 
     private String phase = "";
-    private IChunk chunk = null;
+    private Chunk chunk = null;
     private Object identifier = null;
     private TFChunkGenerator generator = null;
 
@@ -101,7 +101,7 @@ class WatchdogCtx implements WatchdogContext {
     }
 
     @Override
-    public boolean set(IChunk chunk, TFChunkGenerator generator, long duration) {
+    public boolean set(Chunk chunk, TFChunkGenerator generator, long duration) {
         long stamp = lock.writeLock();
         try {
             if (thread != null) {

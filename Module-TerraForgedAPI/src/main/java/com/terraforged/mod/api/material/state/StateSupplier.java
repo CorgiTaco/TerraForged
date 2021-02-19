@@ -26,8 +26,7 @@ package com.terraforged.mod.api.material.state;
 
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.state.Property;
-
+import net.minecraft.state.property.Property;
 import java.util.function.Supplier;
 
 public abstract class StateSupplier implements Supplier<BlockState> {

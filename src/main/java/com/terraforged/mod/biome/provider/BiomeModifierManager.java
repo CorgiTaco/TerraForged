@@ -38,13 +38,13 @@ import com.terraforged.mod.chunk.util.DummyBlockReader;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.material.MaterialColor;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.block.MaterialColor;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeGenerationSettings;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.gen.surfacebuilders.ISurfaceBuilderConfig;
+import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.world.biome.GenerationSettings;
+import net.minecraft.world.gen.surfacebuilder.SurfaceConfig;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -99,8 +99,8 @@ public class BiomeModifierManager implements BiomeModifier {
         return new BeachModifier(
                 biomes,
                 context,
-                context.biomeContext.biomes.getId(Biomes.MUSHROOM_FIELDS),
-                context.biomeContext.biomes.getId(Biomes.MUSHROOM_FIELD_SHORE)
+                context.biomeContext.biomes.getId(BiomeKeys.MUSHROOM_FIELDS),
+                context.biomeContext.biomes.getId(BiomeKeys.MUSHROOM_FIELD_SHORE)
         );
     }
 
@@ -108,26 +108,26 @@ public class BiomeModifierManager implements BiomeModifier {
         IntList redSand = new IntArrayList();
         IntList whiteSand = new IntArrayList();
         IntList deserts = biomes.getAllBiomes(BiomeType.DESERT);
-        int defaultRed = context.biomes.getId(Biomes.BADLANDS);
-        int defaultWhite = context.biomes.getId(Biomes.DESERT);
+        int defaultRed = context.biomes.getId(BiomeKeys.BADLANDS);
+        int defaultWhite = context.biomes.getId(BiomeKeys.DESERT);
         try (Resource<DummyBlockReader> reader = DummyBlockReader.pooled()) {
             for (int id : deserts) {
                 if (!BiomeMap.isValid(id)) {
                     continue;
                 }
                 Biome biome = context.biomes.get(id);
-                BiomeGenerationSettings settings = BiomeHelper.getGenSettings(biome);
+                GenerationSettings settings = BiomeHelper.getGenSettings(biome);
                 if (settings == null) {
                     continue;
                 }
-                ISurfaceBuilderConfig config = settings.getSurfaceBuilderConfig();
+                SurfaceConfig config = settings.getSurfaceConfig();
                 if (config == null) {
                     continue;
                 }
-                BlockState top = config.getTop();
-                MaterialColor color = top.getMaterialColor(reader.get().set(top), BlockPos.ZERO);
+                BlockState top = config.getTopMaterial();
+                MaterialColor color = top.getTopMaterialColor(reader.get().set(top), BlockPos.ORIGIN);
                 int whiteDist2 = distance2(color, MaterialColor.SAND);
-                int redDist2 = distance2(color, MaterialColor.ADOBE);
+                int redDist2 = distance2(color, MaterialColor.ORANGE);
                 if (whiteDist2 < redDist2) {
                     whiteSand.add(id);
                 } else {
@@ -139,8 +139,8 @@ public class BiomeModifierManager implements BiomeModifier {
     }
 
     private static int distance2(MaterialColor mc1, MaterialColor mc2) {
-        Color c1 = new Color(mc1.colorValue);
-        Color c2 = new Color(mc2.colorValue);
+        Color c1 = new Color(mc1.color);
+        Color c2 = new Color(mc2.color);
         int dr = c1.getRed() - c2.getRed();
         int dg = c1.getGreen() - c2.getGreen();
         int db = c1.getBlue() - c2.getBlue();
@@ -164,7 +164,7 @@ public class BiomeModifierManager implements BiomeModifier {
             modifiers.add(new DesertColorModifier(desertBiomes));
             modifiers.add(new DesertWetlandModifier(biomes));
             modifiers.add(new WetlandModifier(biomes.getContext(), ModBiomes.MARSHLAND, ModBiomes.COLD_MARSHLAND, ModBiomes.FROZEN_MARSH));
-            modifiers.add(new WarmLakeModifier(biomes.getContext(), Biomes.DESERT_LAKES, ModBiomes.LAKE));
+            modifiers.add(new WarmLakeModifier(biomes.getContext(), BiomeKeys.DESERT_LAKES, ModBiomes.LAKE));
             modifiers.add(new MountainModifier(context, biomes, context.terraSettings.miscellaneous.mountainBiomeUsage));
             modifiers.add(new VolcanoModifier(biomes, context.terraSettings.miscellaneous.volcanoBiomeUsage));
         }

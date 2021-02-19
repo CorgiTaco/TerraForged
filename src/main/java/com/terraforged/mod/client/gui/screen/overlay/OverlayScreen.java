@@ -25,32 +25,32 @@
 package com.terraforged.mod.client.gui.screen.overlay;
 
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.terraforged.mod.client.gui.GuiKeys;
 import com.terraforged.mod.client.gui.element.Element;
 import com.terraforged.mod.client.gui.element.TFCheckBox;
 import com.terraforged.mod.client.gui.screen.preview.PreviewSettings;
 import com.terraforged.mod.config.ConfigManager;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.util.text.TranslationTextComponent;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.TranslatableText;
 
 public class OverlayScreen extends Screen implements OverlayRenderer {
 
     private final CommentedFileConfig config;
 
     public OverlayScreen() {
-        super(new TranslationTextComponent(""));
-        super.minecraft = Minecraft.getInstance();
-        super.font = minecraft.fontRenderer;
+        super(new TranslatableText(""));
+        super.client = MinecraftClient.getInstance();
+        super.textRenderer = client.textRenderer;
         this.config = ConfigManager.GENERAL.get();
         PreviewSettings.showTooltips = config.getOrElse("tooltips", true);
         PreviewSettings.showCoords = config.getOrElse("coords", false);
     }
 
     @Override
-    public <T extends Widget> T addButton(T buttonIn) {
+    public <T extends AbstractButtonWidget> T addButton(T buttonIn) {
         return super.addButton(buttonIn);
     }
 
@@ -64,7 +64,7 @@ public class OverlayScreen extends Screen implements OverlayRenderer {
 
     @Override
     public void renderOverlays(MatrixStack matrixStack, Screen screen, int mouseX, int mouseY) {
-        for (Widget button : buttons) {
+        for (AbstractButtonWidget button : buttons) {
             if (button.isMouseOver(mouseX, mouseY)) {
                 if (button instanceof Element) {
                     Element element = (Element) button;

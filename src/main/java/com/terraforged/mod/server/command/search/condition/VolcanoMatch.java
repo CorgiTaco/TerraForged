@@ -53,9 +53,9 @@ public class VolcanoMatch implements SearchCondition {
         }
 
         if (cell.terrain == TerrainType.VOLCANO) {
-            search.center.setPos(centerX, 0, centerY);
+            search.center.set(centerX, 0, centerY);
             BlockPos result = search.get();
-            if (result != BlockPos.ZERO) {
+            if (result != BlockPos.ORIGIN) {
                 return PosUtil.pack(result.getX(), result.getZ());
             }
         }

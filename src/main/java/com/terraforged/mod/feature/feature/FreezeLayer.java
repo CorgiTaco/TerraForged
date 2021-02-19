@@ -30,25 +30,27 @@ import com.terraforged.mod.featuremanager.template.BlockUtils;
 import com.terraforged.mod.util.Flags;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.SnowyDirtBlock;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.util.Direction;
+import net.minecraft.block.SnowyBlock;
+import net.minecraft.tag.BlockTags;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.IWorld;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeContainer;
+import net.minecraft.world.biome.source.BiomeArray;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.feature.DefaultFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.NoFeatureConfig;
 
 import javax.annotation.Nullable;
 import java.util.Random;
 
-public class FreezeLayer extends Feature<NoFeatureConfig> {
+public class FreezeLayer extends Feature<DefaultFeatureConfig> {
 
     public static final FreezeLayer INSTANCE = new FreezeLayer();
 
@@ -59,16 +61,16 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
     private static final BiomeAccessor CONTAINER_BIOME_ACCESSOR = (world, container, pos) -> container.getBiome(pos.getX(), pos.getZ());
 
     public FreezeLayer() {
-        super(NoFeatureConfig.field_236558_a_);
-        setRegistryName(TerraForgedMod.MODID, "freeze_top_layer");
+        super(DefaultFeatureConfig.CODEC);
+        Registry.register(Registry.FEATURE, new Identifier(TerraForgedMod.MODID, "freeze_top_layer"), this);
     }
 
     @Override
-    public boolean generate(ISeedReader world, ChunkGenerator generator, Random rand, BlockPos pos, NoFeatureConfig config) {
+    public boolean generate(StructureWorldAccess world, ChunkGenerator generator, Random rand, BlockPos pos, DefaultFeatureConfig config) {
         BlockPos.Mutable pos1 = new BlockPos.Mutable();
         BlockPos.Mutable pos2 = new BlockPos.Mutable();
 
-        IChunk main = world.getChunk(pos);
+        Chunk main = world.getChunk(pos);
         int mainChunkX = main.getPos().x;
         int mainChunkZ = main.getPos().z;
 
@@ -88,8 +90,8 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
         return true;
     }
 
-    private void visitChunk(IWorld world, int chunkX, int chunkZ, int areaMinX, int areaMinZ, int areaMaxX, int areaMaxZ, BlockPos.Mutable pos1, BlockPos.Mutable pos2, boolean main) {
-        final IChunk chunk = world.getChunk(chunkX, chunkZ, ChunkStatus.BIOMES, false);
+    private void visitChunk(WorldAccess world, int chunkX, int chunkZ, int areaMinX, int areaMinZ, int areaMaxX, int areaMaxZ, BlockPos.Mutable pos1, BlockPos.Mutable pos2, boolean main) {
+        final Chunk chunk = world.getChunk(chunkX, chunkZ, ChunkStatus.BIOMES, false);
         if (chunk == null) {
             return;
         }
@@ -114,11 +116,11 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
             int dz = z & 15;
             for (int x = minX; x <= maxX; x++) {
                 int dx = x & 15;
-                int leavesY = leavesHeightmap.getHeight(dx, dz);
-                int groundY = groundHeightmap.getHeight(dx, dz);
+                int leavesY = leavesHeightmap.get(dx, dz);
+                int groundY = groundHeightmap.get(dx, dz);
 
-                pos1.setPos(x, leavesY, z);
-                pos2.setPos(pos1).move(Direction.DOWN, 1);
+                pos1.set(x, leavesY, z);
+                pos2.set(pos1).move(Direction.DOWN, 1);
                 Biome biome = biomeAccessor.getBiome(world, biomes, pos1);
 
                 if (leavesY > groundY) {
@@ -126,8 +128,8 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
                 }
 
                 if (main) {
-                    pos1.setPos(x, groundY, z);
-                    pos2.setPos(pos1).move(Direction.DOWN, 1);
+                    pos1.set(x, groundY, z);
+                    pos2.set(pos1).move(Direction.DOWN, 1);
                     freezeGround(world, chunk, biome, pos1, pos2);
                 }
             }
@@ -135,8 +137,8 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
     }
 
     // Chunk::getBlockState masks coords so need to relativize
-    private void freezeLeaves(IWorld world, IChunk chunk, Biome biome, BlockPos.Mutable pos, BlockPos.Mutable below) {
-        if (biome.doesSnowGenerate(world, pos)) {
+    private void freezeLeaves(WorldAccess world, Chunk chunk, Biome biome, BlockPos.Mutable pos, BlockPos.Mutable below) {
+        if (biome.canSetSnow(world, pos)) {
             BlockState stateUnder = chunk.getBlockState(below);
             if (stateUnder.getBlock() == Blocks.AIR) {
                 return;
@@ -146,12 +148,12 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
     }
 
     // Chunk::getBlockState & Chunk::setBlockState masks coords so need to relativize
-    private void freezeGround(IWorld world, IChunk chunk, Biome biome, BlockPos.Mutable snowPos, BlockPos.Mutable underPos) {
-        if (biome.doesWaterFreeze(world, underPos, false)) {
+    private void freezeGround(WorldAccess world, Chunk chunk, Biome biome, BlockPos.Mutable snowPos, BlockPos.Mutable underPos) {
+        if (biome.canSetIce(world, underPos, false)) {
             chunk.setBlockState(underPos, Blocks.ICE.getDefaultState(), false);
         }
 
-        if (biome.doesSnowGenerate(world, snowPos)) {
+        if (biome.canSetSnow(world, snowPos)) {
             BlockState stateUnder = chunk.getBlockState(underPos);
             if (BlockUtils.isAir(stateUnder, chunk, underPos)) {
                 return;
@@ -176,7 +178,7 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
         }
     }
 
-    private int getAboveStateFlags(IChunk chunk, BlockPos.Mutable pos) {
+    private int getAboveStateFlags(Chunk chunk, BlockPos.Mutable pos) {
         pos.move(Direction.UP, 1);
         BlockState state = chunk.getBlockState(pos);
         boolean air = BlockUtils.isAir(state, chunk, pos);
@@ -186,21 +188,21 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
     }
 
     // Chunk::setBlockState masks coords so need to relativize
-    private boolean setSnow(IChunk chunk, BlockPos pos1, BlockPos pos2, BlockState below) {
+    private boolean setSnow(Chunk chunk, BlockPos pos1, BlockPos pos2, BlockState below) {
         if (BlockUtils.isSolid(chunk, pos1)) {
             return false;
         }
 
         chunk.setBlockState(pos1, Blocks.SNOW.getDefaultState(), false);
-        if (below.hasProperty(SnowyDirtBlock.SNOWY)) {
-            chunk.setBlockState(pos2, below.with(SnowyDirtBlock.SNOWY, true), false);
+        if (below.contains(SnowyBlock.SNOWY)) {
+            chunk.setBlockState(pos2, below.with(SnowyBlock.SNOWY, true), false);
         }
         return true;
     }
 
     @Nullable
-    private static TFBiomeContainer getBiomeContainer(IChunk chunk) {
-        BiomeContainer biomes = chunk.getBiomes();
+    private static TFBiomeContainer getBiomeContainer(Chunk chunk) {
+        BiomeArray biomes = chunk.getBiomeArray();
         if (biomes instanceof TFBiomeContainer) {
             return (TFBiomeContainer) biomes;
         }
@@ -213,6 +215,6 @@ public class FreezeLayer extends Feature<NoFeatureConfig> {
 
     private interface BiomeAccessor {
 
-        Biome getBiome(IWorld world, TFBiomeContainer container, BlockPos pos);
+        Biome getBiome(WorldAccess world, TFBiomeContainer container, BlockPos pos);
     }
 }

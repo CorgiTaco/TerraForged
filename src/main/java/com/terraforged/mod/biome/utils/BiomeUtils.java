@@ -29,29 +29,30 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.JsonOps;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
+import com.terraforged.mod.mixin.access.BiomeWeatherAccess;
 import com.terraforged.mod.util.reflect.Accessor;
 import com.terraforged.mod.util.reflect.FieldAccessor;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.BuiltinRegistries;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class BiomeUtils {
 
-    private static final Codec<Biome.Climate> CLIMATE_CODEC = Biome.Climate.CODEC.codec();
+    private static final Codec<Biome.Weather> CLIMATE_CODEC = Biome.Weather.CODEC.codec();
     private static final Map<RegistryKey<Biome>, BiomeBuilder> BUILDERS = new HashMap<>();
-    private static final FieldAccessor<Biome, Biome.Climate> CLIMATE_ACCESSOR = Accessor.field(Biome.class, Biome.Climate.class);
+    private static final FieldAccessor<Biome, Biome.Weather> CLIMATE_ACCESSOR = Accessor.field(Biome.class, Biome.Weather.class);
 
     public static BiomeBuilder getBuilder(RegistryKey<Biome> biome) {
         return BUILDERS.computeIfAbsent(biome, BiomeUtils::copy).init();
     }
 
     public static BiomeBuilder copy(RegistryKey<Biome> key) {
-        Biome biome = ForgeRegistries.BIOMES.getValue(key.getLocation());
+        Biome biome = BuiltinRegistries.BIOME.get(key.getValue());
         if (biome == null) {
-            throw new NullPointerException(key.getLocation().toString());
+            throw new NullPointerException(key.getValue().toString());
         }
 
         BiomeBuilder builder = new BiomeBuilder(key, biome);
@@ -61,22 +62,22 @@ public class BiomeUtils {
         builder.category(biome.getCategory());
 
         // ambience
-        builder.setEffects(biome.getAmbience());
+        builder.effects(biome.getEffects());
 
         // climate
-        Biome.Climate climate = getClimate(biome);
-        builder.downfall(climate.downfall);
-        builder.temperature(climate.temperature);
-        builder.precipitation(climate.precipitation);
-        builder.withTemperatureModifier(climate.temperatureModifier);
+        Biome.Weather climate = getClimate(biome);
+        builder.downfall(((BiomeWeatherAccess) climate).getDownfall());
+        builder.temperature(((BiomeWeatherAccess) climate).getTemperature());
+        builder.precipitation(((BiomeWeatherAccess) climate).getPrecipitation());
+        builder.temperatureModifier(((BiomeWeatherAccess) climate).getTemperatureModifier());
 
         // mobs
-        builder.withMobSpawnSettings(biome.getMobSpawnInfo());
+        builder.spawnSettings(biome.getSpawnSettings());
 
         return builder;
     }
 
-    private static Biome.Climate getClimate(Biome biome) {
+    private static Biome.Weather getClimate(Biome biome) {
         try {
             return CLIMATE_ACCESSOR.get(biome);
         } catch (IllegalAccessException e) {
@@ -88,7 +89,7 @@ public class BiomeUtils {
             return Codecs.decodeAndGet(CLIMATE_CODEC, new Dynamic<>(JsonOps.INSTANCE, json));
         } catch (Throwable t) {
             t.printStackTrace();
-            return new Biome.Climate(Biome.RainType.RAIN, 0.5F, Biome.TemperatureModifier.NONE, 0.5F);
+            return new Biome.Weather(Biome.Precipitation.RAIN, 0.5F, Biome.TemperatureModifier.NONE, 0.5F);
         }
     }
 }

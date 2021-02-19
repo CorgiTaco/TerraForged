@@ -24,7 +24,6 @@
 
 package com.terraforged.mod.client.gui.screen.preview;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.terraforged.engine.cell.Cell;
@@ -44,20 +43,21 @@ import com.terraforged.engine.world.heightmap.Levels;
 import com.terraforged.mod.client.gui.GuiKeys;
 import com.terraforged.mod.util.DataUtils;
 import com.terraforged.noise.util.NoiseUtil;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.AbstractGui;
-import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.renderer.texture.DynamicTexture;
-import net.minecraft.client.renderer.texture.NativeImage;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.gui.DrawableHelper;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.texture.NativeImage;
+import net.minecraft.client.texture.NativeImageBackedTexture;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.text.LiteralText;
 
 import java.awt.*;
 import java.util.Objects;
 import java.util.Random;
 
-public class Preview extends Button {
+public class Preview extends ButtonWidget {
 
     private static final int FACTOR = 4;
     public static final int SIZE = Size.chunkToBlock(1 << FACTOR);
@@ -68,14 +68,14 @@ public class Preview extends Button {
     private final ThreadPool threadPool = ThreadPools.createDefault();
     private final Random random = new Random(System.currentTimeMillis());
     private final PreviewSettings previewSettings = new PreviewSettings();
-    private final DynamicTexture texture = new DynamicTexture(new NativeImage(SIZE, SIZE, true));
+    private final NativeImageBackedTexture texture = new NativeImageBackedTexture(new NativeImage(SIZE, SIZE, true));
 
     private int seed;
     private long lastUpdate = 0L;
     private Tile tile = null;
     private CacheEntry<Tile> task = null;
-    private CompoundNBT lastWorldSettings = null;
-    private CompoundNBT lastPreviewSettings = null;
+    private CompoundTag lastWorldSettings = null;
+    private CompoundTag lastPreviewSettings = null;
 
     private Settings settings = new Settings();
     private MutableVeci center = new MutableVeci();
@@ -85,7 +85,7 @@ public class Preview extends Button {
     private String[] labels = {GuiKeys.PREVIEW_AREA.get(), GuiKeys.PREVIEW_TERRAIN.get(), GuiKeys.PREVIEW_BIOME.get()};
 
     public Preview(int seed) {
-        super(0, 0, 0, 0, new StringTextComponent(""), b -> {});
+        super(0, 0, 0, 0, new LiteralText(""), b -> {});
         this.seed = seed == -1 ? random.nextInt() : seed;
         this.offsetX = 0;
         this.offsetZ = 0;
@@ -109,8 +109,8 @@ public class Preview extends Button {
 
     public boolean click(double mx, double my) {
         if (updateLegend((int) mx, (int) my) && !hoveredCoords.isEmpty()) {
-            super.playDownSound(Minecraft.getInstance().getSoundHandler());
-            Minecraft.getInstance().keyboardListener.setClipboardString(hoveredCoords);
+            super.playDownSound(MinecraftClient.getInstance().getSoundManager());
+            MinecraftClient.getInstance().keyboard.setClipboard(hoveredCoords);
             return true;
         }
         return false;
@@ -125,10 +125,10 @@ public class Preview extends Button {
         texture.bindTexture();
         RenderSystem.enableBlend();
         RenderSystem.enableRescaleNormal();
-        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
-        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        RenderSystem.blendFuncSeparate(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA, GlStateManager.SrcFactor.ONE, GlStateManager.DstFactor.ZERO);
+        RenderSystem.blendFunc(GlStateManager.SrcFactor.SRC_ALPHA, GlStateManager.DstFactor.ONE_MINUS_SRC_ALPHA);
 
-        AbstractGui.blit(matrixStack, x, y, 0, 0, width, height, width, height);
+        DrawableHelper.drawTexture(matrixStack, x, y, 0, 0, width, height, width, height);
         RenderSystem.disableRescaleNormal();
 
         updateLegend(mx, my);
@@ -136,7 +136,7 @@ public class Preview extends Button {
         renderLegend(matrixStack, mx, my, labels, values, x, y + width, 10, 0xFFFFFF);
     }
 
-    public void update(Settings settings, CompoundNBT prevSettings) {
+    public void update(Settings settings, CompoundTag prevSettings) {
         long time = System.currentTimeMillis();
         if (time - lastUpdate < 20) {
             return;
@@ -144,8 +144,8 @@ public class Preview extends Button {
 
 
         // Dumb way of preventing the image repainting when nothing has changed
-        CompoundNBT previewSettings = prevSettings.copy();
-        CompoundNBT worldSettings = DataUtils.toCompactNBT(settings);
+        CompoundTag previewSettings = prevSettings.copy();
+        CompoundTag worldSettings = DataUtils.toCompactNBT(settings);
         if (Objects.equals(lastWorldSettings, worldSettings) && Objects.equals(lastPreviewSettings, previewSettings)) {
             return;
         }
@@ -178,7 +178,7 @@ public class Preview extends Button {
     }
 
     private void render(Tile tile) {
-        NativeImage image = texture.getTextureData();
+        NativeImage image = texture.getImage();
         if (image == null) {
             return;
         }
@@ -191,16 +191,16 @@ public class Preview extends Button {
 
         tile.iterate((cell, x, z) -> {
             if (x < stroke || z < stroke || x >= width - stroke || z >= width - stroke) {
-                image.setPixelRGBA(x, z, Color.BLACK.getRGB());
+                image.setPixelColor(x, z, Color.BLACK.getRGB());
             } else {
-                image.setPixelRGBA(x, z, renderer.getColor(cell, levels));
+                image.setPixelColor(x, z, renderer.getColor(cell, levels));
             }
         });
 
-        texture.updateDynamicTexture();
+        texture.upload();
     }
 
-    private CacheEntry<Tile> generate(Settings settings, CompoundNBT prevSettings) {
+    private CacheEntry<Tile> generate(Settings settings, CompoundTag prevSettings) {
         DataUtils.fromNBT(prevSettings, previewSettings);
         settings.world.seed = seed;
         this.settings = settings;
@@ -258,7 +258,7 @@ public class Preview extends Button {
     }
 
     private float getLegendScale() {
-        int index = Minecraft.getInstance().gameSettings.guiScale - 1;
+        int index = MinecraftClient.getInstance().options.guiScale - 1;
         if (index < 0 || index >= LEGEND_SCALES.length) {
             // index=-1 == GuiScale(AUTO) which is the same as GuiScale(4)
             // values above 4 don't exist but who knows what mods might try set it to
@@ -275,10 +275,10 @@ public class Preview extends Button {
         RenderSystem.translatef(left + 3.75F * scale, top - lineHeight * (3.2F * scale), 0);
         RenderSystem.scalef(scale, scale, 1);
 
-        FontRenderer renderer = Minecraft.getInstance().fontRenderer;
+        TextRenderer renderer = MinecraftClient.getInstance().textRenderer;
         int spacing = 0;
         for (String s : labels) {
-            spacing = Math.max(spacing, renderer.getStringWidth(s));
+            spacing = Math.max(spacing, renderer.getWidth(s));
         }
 
         float maxWidth = (width - 4) / scale;
@@ -286,12 +286,12 @@ public class Preview extends Button {
             String label = labels[i];
             String value = values[i];
 
-            while (value.length() > 0 && spacing + renderer.getStringWidth(value) > maxWidth) {
+            while (value.length() > 0 && spacing + renderer.getWidth(value) > maxWidth) {
                 value = value.substring(0, value.length() - 1);
             }
 
-            drawString(matrixStack, renderer, label, 0, i * lineHeight, color);
-            drawString(matrixStack, renderer, value, spacing, i * lineHeight, color);
+            drawStringWithShadow(matrixStack, renderer, label, 0, i * lineHeight, color);
+            drawStringWithShadow(matrixStack, renderer, value, spacing, i * lineHeight, color);
         }
 
         RenderSystem.popMatrix();

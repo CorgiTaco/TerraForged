@@ -26,7 +26,7 @@ package com.terraforged.mod.biome.provider.analyser;
 
 import com.terraforged.engine.world.biome.map.BiomeCollector;
 import com.terraforged.mod.biome.context.TFBiomeContext;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 
 import java.util.Arrays;

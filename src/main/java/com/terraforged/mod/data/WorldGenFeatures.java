@@ -32,7 +32,7 @@ import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.featuremanager.FeatureSerializer;
 import com.terraforged.mod.featuremanager.util.FeatureDebugger;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 
 import java.io.File;
@@ -58,7 +58,7 @@ public class WorldGenFeatures extends DataGen {
             JsonObject root = new JsonObject();
             List<List<Supplier<ConfiguredFeature<?, ?>>>> stageFeatures = biome.getGenerationSettings().getFeatures();;
 
-            for (GenerationStage.Decoration type : GenerationStage.Decoration.values()) {
+            for (GenerationStep.Feature type : GenerationStep.Feature.values()) {
                 if (type.ordinal() >= stageFeatures.size()) {
                     continue;
                 }

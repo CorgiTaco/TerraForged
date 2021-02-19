@@ -24,35 +24,34 @@
 
 package com.terraforged.mod.featuremanager.template.template;
 
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
-
 import java.util.function.IntFunction;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
 
 public abstract class BakedTransform<T> {
 
-    public static final int MIRRORS = Mirror.values().length;
-    public static final int ROTATIONS = Rotation.values().length;
+    public static final int MIRRORS = BlockMirror.values().length;
+    public static final int ROTATIONS = BlockRotation.values().length;
 
     private final T[] backing;
 
     public BakedTransform(IntFunction<T[]> array, T value) {
         backing = array.apply(MIRRORS * ROTATIONS);
-        for (Mirror mirror : Mirror.values()) {
-            for (Rotation rotation : Rotation.values()) {
+        for (BlockMirror mirror : BlockMirror.values()) {
+            for (BlockRotation rotation : BlockRotation.values()) {
                 T result = apply(mirror, rotation, value);
                 backing[indexOf(mirror, rotation)] = result;
             }
         }
     }
 
-    public T get(Mirror mirror, Rotation rotation) {
+    public T get(BlockMirror mirror, BlockRotation rotation) {
         return backing[indexOf(mirror, rotation)];
     }
 
-    protected abstract T apply(Mirror mirror, Rotation rotation, T value);
+    protected abstract T apply(BlockMirror mirror, BlockRotation rotation, T value);
 
-    private static int indexOf(Mirror mirror, Rotation rotation) {
+    private static int indexOf(BlockMirror mirror, BlockRotation rotation) {
         return mirror.ordinal() * ROTATIONS + rotation.ordinal();
     }
 }

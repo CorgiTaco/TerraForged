@@ -24,8 +24,8 @@
 
 package com.terraforged.mod.api.chunk;
 
-import net.minecraft.util.SharedSeedRandom;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.ChunkRandom;
 
 public class ChunkContext {
 
@@ -33,15 +33,15 @@ public class ChunkContext {
     public final int chunkZ;
     public final int blockX;
     public final int blockZ;
-    public final IChunk chunk;
-    public final SharedSeedRandom random = new SharedSeedRandom();
+    public final Chunk chunk;
+    public final ChunkRandom random = new ChunkRandom();
 
-    public ChunkContext(IChunk chunk) {
+    public ChunkContext(Chunk chunk) {
         this.chunk = chunk;
         this.chunkX = chunk.getPos().x;
         this.chunkZ = chunk.getPos().z;
         this.blockX = chunkX << 4;
         this.blockZ = chunkZ << 4;
-        this.random.setBaseChunkSeed(chunkX, chunkZ);
+        this.random.setTerrainSeed(chunkX, chunkZ);
     }
 }

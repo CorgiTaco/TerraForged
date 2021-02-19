@@ -30,16 +30,19 @@ import com.terraforged.engine.world.biome.map.defaults.BiomeTemps;
 import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.noise.util.NoiseUtil;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeGenerationSettings;
-import net.minecraft.world.gen.surfacebuilders.ConfiguredSurfaceBuilder;
-import net.minecraft.world.gen.surfacebuilders.ISurfaceBuilderConfig;
-import net.minecraft.world.gen.surfacebuilders.SurfaceBuilder;
-import net.minecraftforge.common.BiomeDictionary;
+import net.minecraft.world.biome.GenerationSettings;
+import net.minecraft.world.gen.surfacebuilder.ConfiguredSurfaceBuilder;
+import net.minecraft.world.gen.surfacebuilder.SurfaceBuilder;
+import net.minecraft.world.gen.surfacebuilder.SurfaceConfig;
 
 import javax.annotation.Nullable;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 public class BiomeHelper {
 
@@ -113,13 +116,13 @@ public class BiomeHelper {
         return biome.getTemperature();
     }
 
-    public static ISurfaceBuilderConfig getSurface(Biome biome) {
+    public static SurfaceConfig getSurface(Biome biome) {
         if (biome != null) {
-            if (biome.getGenerationSettings() != null && biome.getGenerationSettings().getSurfaceBuilderConfig() != null) {
-                return biome.getGenerationSettings().getSurfaceBuilderConfig();
+            if (biome.getGenerationSettings() != null && biome.getGenerationSettings().getSurfaceConfig() != null) {
+                return biome.getGenerationSettings().getSurfaceConfig();
             }
         }
-        return SurfaceBuilder.GRASS_DIRT_GRAVEL_CONFIG;
+        return SurfaceBuilder.GRASS_CONFIG;
     }
 
     public static ConfiguredSurfaceBuilder<?> getSurfaceBuilder(Biome biome) {
@@ -128,10 +131,10 @@ public class BiomeHelper {
                 return biome.getGenerationSettings().getSurfaceBuilder().get();
             }
         }
-        return SurfaceBuilder.DEFAULT.func_242929_a(SurfaceBuilder.GRASS_DIRT_GRAVEL_CONFIG);
+        return SurfaceBuilder.DEFAULT.withConfig(SurfaceBuilder.GRASS_CONFIG);
     }
 
-    public static BiomeGenerationSettings getGenSettings(Biome biome) {
+    public static GenerationSettings getGenSettings(Biome biome) {
         return biome.getGenerationSettings();
     }
 
@@ -139,14 +142,18 @@ public class BiomeHelper {
         return isOverworldBiome(context.biomes.getKey(biome));
     }
 
+    public static final Map<RegistryKey<Biome>, Double> OVERWORLD_BIOMES = new HashMap<>();
+
     public static boolean isOverworldBiome(@Nullable RegistryKey<Biome> key) {
         if (key == null) {
             return false;
         }
-        ResourceLocation name = key.getLocation();
+        Identifier name = key.getValue();
         if (name.getNamespace().equals(TerraForgedMod.MODID)) {
             return true;
         }
-        return BiomeDictionary.getTypes(key).contains(BiomeDictionary.Type.OVERWORLD);
+
+
+        return OVERWORLD_BIOMES.keySet().contains(key);
     }
 }

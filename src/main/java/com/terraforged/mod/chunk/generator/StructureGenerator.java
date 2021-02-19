@@ -26,68 +26,68 @@ package com.terraforged.mod.chunk.generator;
 
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.chunk.settings.TerraSettings;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.crash.ReportedException;
-import net.minecraft.network.DebugPacketSender;
+import net.minecraft.server.network.DebugInfoSender;
+import net.minecraft.structure.StructureManager;
+import net.minecraft.structure.StructureStart;
+import net.minecraft.util.crash.CrashException;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.util.crash.CrashReportSection;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.SectionPos;
-import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.chunk.StructureConfig;
+import net.minecraft.world.gen.chunk.StructuresConfig;
+import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
+import net.minecraft.world.gen.feature.ConfiguredStructureFeatures;
 import net.minecraft.world.gen.feature.StructureFeature;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureFeatures;
-import net.minecraft.world.gen.feature.structure.StructureManager;
-import net.minecraft.world.gen.feature.structure.StructureStart;
-import net.minecraft.world.gen.feature.template.TemplateManager;
-import net.minecraft.world.gen.settings.DimensionStructuresSettings;
-import net.minecraft.world.gen.settings.StructureSeparationSettings;
 
 import java.util.function.Supplier;
 
 public class StructureGenerator implements Generator.Structures {
 
     private final TFChunkGenerator generator;
-    private final DimensionStructuresSettings structuresSettings;
+    private final StructuresConfig structuresSettings;
 
     public StructureGenerator(TFChunkGenerator generator) {
-        TerraSettings settings = generator.getBiomeProvider().getSettings();
+        TerraSettings settings = generator.getBiomeSource().getSettings();
         this.generator = generator;
-        this.structuresSettings = settings.structures.apply(generator.getSettings().get().getStructures()); // defensive copy
+        this.structuresSettings = settings.structures.apply(generator.getSettings().get().getStructuresConfig()); // defensive copy
     }
 
     @Override
-    public StructureSeparationSettings getSeparationSettings(Structure<?> structure) {
-        return structuresSettings.func_236197_a_(structure);
+    public StructureConfig getSeparationSettings(StructureFeature<?> structure) {
+        return structuresSettings.getForType(structure);
     }
 
     @Override
-    public void generateStructureStarts(IChunk chunk, DynamicRegistries registries, StructureManager structures, TemplateManager templates) {
+    public void generateStructureStarts(Chunk chunk, DynamicRegistryManager registries, StructureAccessor structures, StructureManager templates) {
         long seed = generator.getSeed();
         ChunkPos pos = chunk.getPos();
         generator.queueChunk(pos);
-        Biome biome = generator.getBiomeProvider().getNoiseBiome((pos.x << 2) + 2, 0, (pos.z << 2) + 2);
-        generate(chunk, pos, biome, StructureFeatures.STRONGHOLD, registries, structures, templates, seed);
-        for (Supplier<StructureFeature<?, ?>> supplier : biome.getGenerationSettings().getStructures()) {
+        Biome biome = generator.getBiomeSource().getBiomeForNoiseGen((pos.x << 2) + 2, 0, (pos.z << 2) + 2);
+        generate(chunk, pos, biome, ConfiguredStructureFeatures.STRONGHOLD, registries, structures, templates, seed);
+        for (Supplier<ConfiguredStructureFeature<?, ?>> supplier : biome.getGenerationSettings().getStructureFeatures()) {
             this.generate(chunk, pos, biome, supplier.get(), registries, structures, templates, seed);
         }
     }
 
-    private void generate(IChunk chunk, ChunkPos pos, Biome biome, StructureFeature<?, ?> structure, DynamicRegistries registries, StructureManager structures, TemplateManager templates, long seed) {
-        StructureStart<?> start = structures.getStructureStart(SectionPos.from(chunk.getPos(), 0), structure.field_236268_b_, chunk);
-        int i = start != null ? start.getRefCount() : 0;
-        StructureSeparationSettings settings = getSeparationSettings(structure.field_236268_b_);
+    private void generate(Chunk chunk, ChunkPos pos, Biome biome, ConfiguredStructureFeature<?, ?> structure, DynamicRegistryManager registries, StructureAccessor structures, StructureManager templates, long seed) {
+        StructureStart<?> start = structures.getStructureStart(ChunkSectionPos.from(chunk.getPos(), 0), structure.feature, chunk);
+        int i = start != null ? start.getReferences() : 0;
+        StructureConfig settings = getSeparationSettings(structure.feature);
         if (settings != null) {
-            StructureStart<?> start1 = structure.func_242771_a(registries, generator, generator.getBiomeProvider(), templates, seed, pos, biome, i, settings);
-            structures.addStructureStart(SectionPos.from(chunk.getPos(), 0), structure.field_236268_b_, start1, chunk);
+            StructureStart<?> start1 = structure.tryPlaceStart(registries, generator, generator.getBiomeSource(), templates, seed, pos, biome, i, settings);
+            structures.setStructureStart(ChunkSectionPos.from(chunk.getPos(), 0), structure.feature, start1, chunk);
         }
     }
 
     @Override
-    public void generateStructureReferences(ISeedReader world, IChunk chunk, StructureManager structures) {
+    public void generateStructureReferences(StructureWorldAccess world, Chunk chunk, StructureAccessor structures) {
         int radius = 8;
         int chunkX = chunk.getPos().x;
         int chunkZ = chunk.getPos().z;
@@ -95,25 +95,25 @@ public class StructureGenerator implements Generator.Structures {
         int startZ = chunkZ << 4;
         int endX = startX + 15;
         int endZ = startZ + 15;
-        SectionPos sectionpos = SectionPos.from(chunk.getPos(), 0);
+        ChunkSectionPos sectionpos = ChunkSectionPos.from(chunk.getPos(), 0);
 
         for (int x = chunkX - radius; x <= chunkX + radius; ++x) {
             for (int z = chunkZ - radius; z <= chunkZ + radius; ++z) {
-                long posId = ChunkPos.asLong(x, z);
+                long posId = ChunkPos.toLong(x, z);
 
                 for (StructureStart<?> start : world.getChunk(x, z).getStructureStarts().values()) {
                     try {
-                        if (start != StructureStart.DUMMY && start.getBoundingBox().intersectsWith(startX, startZ, endX, endZ)) {
-                            structures.addReference(sectionpos, start.getStructure(), posId, chunk);
-                            DebugPacketSender.sendStructureStart(world, start);
+                        if (start != StructureStart.DEFAULT && start.getBoundingBox().intersectsXZ(startX, startZ, endX, endZ)) {
+                            structures.addStructureReference(sectionpos, start.getFeature(), posId, chunk);
+                            DebugInfoSender.sendStructureStart(world, start);
                         }
                     } catch (Exception exception) {
-                        CrashReport crashreport = CrashReport.makeCrashReport(exception, "Generating structure reference");
-                        CrashReportCategory crashreportcategory = crashreport.makeCategory("Structure");
-                        crashreportcategory.addDetail("Id", () -> Registry.STRUCTURE_FEATURE.getKey(start.getStructure()).toString());
-                        crashreportcategory.addDetail("Name", () -> start.getStructure().getStructureName());
-                        crashreportcategory.addDetail("Class", () -> start.getStructure().getClass().getCanonicalName());
-                        throw new ReportedException(crashreport);
+                        CrashReport crashreport = CrashReport.create(exception, "Generating structure reference");
+                        CrashReportSection crashreportcategory = crashreport.addElement("Structure");
+                        crashreportcategory.add("Id", () -> Registry.STRUCTURE_FEATURE.getId(start.getFeature()).toString());
+                        crashreportcategory.add("Name", () -> start.getFeature().getName());
+                        crashreportcategory.add("Class", () -> start.getFeature().getClass().getCanonicalName());
+                        throw new CrashException(crashreport);
                     }
                 }
             }

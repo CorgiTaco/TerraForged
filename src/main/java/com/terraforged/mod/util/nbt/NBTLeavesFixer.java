@@ -46,10 +46,10 @@ public class NBTLeavesFixer {
         } else if (file.getName().endsWith(".nbt")) {
             try {
                 System.out.println("Opening file: " + file);
-                CompoundNBT value;
-                INBT result;
+                CompoundTag value;
+                Tag result;
                 try (InputStream in = new FileInputStream(file)) {
-                    value = CompressedStreamTools.readCompressed(in);
+                    value = NbtIo.readCompressed(in);
                     result = modify("", value, ruleSet);
                     if (value == result) {
                         return;
@@ -57,7 +57,7 @@ public class NBTLeavesFixer {
                 }
                 System.out.println("Writing file: " + file);
                 try (OutputStream out = new FileOutputStream(file)) {
-                    CompressedStreamTools.writeCompressed((CompoundNBT) result, out);
+                    NbtIo.writeCompressed((CompoundTag) result, out);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -65,23 +65,23 @@ public class NBTLeavesFixer {
         }
     }
 
-    private static INBT modify(String name, INBT nbt, RuleSet ruleSet) {
-        if (nbt instanceof CompoundNBT) {
-            CompoundNBT map = (CompoundNBT) nbt;
+    private static Tag modify(String name, Tag nbt, RuleSet ruleSet) {
+        if (nbt instanceof CompoundTag) {
+            CompoundTag map = (CompoundTag) nbt;
             boolean change = false;
-            for (String key : map.keySet()) {
-                INBT value = map.get(key);
-                INBT result = modify(key, value, ruleSet);
+            for (String key : map.getKeys()) {
+                Tag value = map.get(key);
+                Tag result = modify(key, value, ruleSet);
                 map.put(key, result);
                 change |= value != result;
             }
             return change ? map.copy() : map;
-        } else if (nbt instanceof ListNBT) {
-            ListNBT list = (ListNBT) nbt;
+        } else if (nbt instanceof ListTag) {
+            ListTag list = (ListTag) nbt;
             boolean change = false;
             for (int i = 0; i < list.size(); i++) {
-                INBT value = list.get(i);
-                INBT result = modify(name + "[" + i + "]", value, ruleSet);
+                Tag value = list.get(i);
+                Tag result = modify(name + "[" + i + "]", value, ruleSet);
                 list.set(i, result);
                 change |= result != value;
             }
@@ -91,11 +91,11 @@ public class NBTLeavesFixer {
             if (rule == null) {
                 return nbt;
             }
-            if (nbt instanceof StringNBT) {
-                String value = nbt.getString();
+            if (nbt instanceof StringTag) {
+                String value = nbt.asString();
                 if (value.equals(rule.match)) {
                     System.out.println(" Replaced value for: " + name);
-                    return StringNBT.valueOf(rule.replace.toString());
+                    return StringTag.of(rule.replace.toString());
                 }
             }
             return nbt;

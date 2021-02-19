@@ -28,25 +28,25 @@ import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.shorts.ShortList;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.fluid.Fluid;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.tileentity.TileEntity;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.structure.StructureStart;
+import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.*;
-import net.minecraft.util.math.shapes.VoxelShape;
-import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.util.palette.UpgradeData;
-import net.minecraft.world.ITickList;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.biome.BiomeContainer;
+import net.minecraft.util.shape.VoxelShape;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.RaycastContext;
+import net.minecraft.world.TickScheduler;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.biome.source.BiomeArray;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
 import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureStart;
-
+import net.minecraft.world.chunk.UpgradeData;
+import net.minecraft.world.gen.feature.StructureFeature;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Map;
@@ -54,15 +54,15 @@ import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
-public class ChunkDelegate implements IChunk {
+public class ChunkDelegate implements Chunk {
 
-    protected final IChunk delegate;
+    protected final Chunk delegate;
 
-    public ChunkDelegate(IChunk delegate) {
+    public ChunkDelegate(Chunk delegate) {
         this.delegate = delegate;
     }
 
-    public IChunk getDelegate() {
+    public Chunk getDelegate() {
         return delegate;
     }
 
@@ -73,8 +73,8 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public void addTileEntity(BlockPos pos, TileEntity tileEntityIn) {
-        delegate.addTileEntity(pos, tileEntityIn);
+    public void setBlockEntity(BlockPos pos, BlockEntity tileEntityIn) {
+        delegate.setBlockEntity(pos, tileEntityIn);
     }
 
     @Override
@@ -84,23 +84,23 @@ public class ChunkDelegate implements IChunk {
 
     @Override
     @Nullable
-    public ChunkSection getLastExtendedBlockStorage() {
-        return delegate.getLastExtendedBlockStorage();
+    public ChunkSection getHighestNonEmptySection() {
+        return delegate.getHighestNonEmptySection();
     }
 
     @Override
-    public int getTopFilledSegment() {
-        return delegate.getTopFilledSegment();
+    public int getHighestNonEmptySectionYOffset() {
+        return delegate.getHighestNonEmptySectionYOffset();
     }
 
     @Override
-    public Set<BlockPos> getTileEntitiesPos() {
-        return delegate.getTileEntitiesPos();
+    public Set<BlockPos> getBlockEntityPositions() {
+        return delegate.getBlockEntityPositions();
     }
 
     @Override
-    public ChunkSection[] getSections() {
-        return delegate.getSections();
+    public ChunkSection[] getSectionArray() {
+        return delegate.getSectionArray();
     }
 
     @Override
@@ -119,8 +119,8 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public int getTopBlockY(Heightmap.Type heightmapType, int x, int z) {
-        return delegate.getTopBlockY(heightmapType, x, z);
+    public int sampleHeightmap(Heightmap.Type heightmapType, int x, int z) {
+        return delegate.sampleHeightmap(heightmapType, x, z);
     }
 
     @Override
@@ -134,34 +134,34 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public Map<Structure<?>, StructureStart<?>> getStructureStarts() {
+    public Map<StructureFeature<?>, StructureStart<?>> getStructureStarts() {
         return delegate.getStructureStarts();
     }
 
     @Override
-    public void setStructureStarts(Map<Structure<?>, StructureStart<?>> structureStartsIn) {
+    public void setStructureStarts(Map<StructureFeature<?>, StructureStart<?>> structureStartsIn) {
         delegate.setStructureStarts(structureStartsIn);
     }
 
     @Override
-    public boolean isEmptyBetween(int startY, int endY) {
-        return delegate.isEmptyBetween(startY, endY);
+    public boolean areSectionsEmptyBetween(int startY, int endY) {
+        return delegate.areSectionsEmptyBetween(startY, endY);
     }
 
     @Override
     @Nullable
-    public BiomeContainer getBiomes() {
-        return delegate.getBiomes();
+    public BiomeArray getBiomeArray() {
+        return delegate.getBiomeArray();
     }
 
     @Override
-    public void setModified(boolean modified) {
-        delegate.setModified(modified);
+    public void setShouldSave(boolean modified) {
+        delegate.setShouldSave(modified);
     }
 
     @Override
-    public boolean isModified() {
-        return delegate.isModified();
+    public boolean needsSaving() {
+        return delegate.needsSaving();
     }
 
     @Override
@@ -170,55 +170,55 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public void removeTileEntity(BlockPos pos) {
-        delegate.removeTileEntity(pos);
+    public void removeBlockEntity(BlockPos pos) {
+        delegate.removeBlockEntity(pos);
     }
 
     @Override
-    public void markBlockForPostprocessing(BlockPos pos) {
-        delegate.markBlockForPostprocessing(pos);
+    public void markBlockForPostProcessing(BlockPos pos) {
+        delegate.markBlockForPostProcessing(pos);
     }
 
     @Override
-    public ShortList[] getPackedPositions() {
-        return delegate.getPackedPositions();
+    public ShortList[] getPostProcessingLists() {
+        return delegate.getPostProcessingLists();
     }
 
     @Override
-    public void addPackedPosition(short packedPosition, int index) {
-        delegate.addPackedPosition(packedPosition, index);
+    public void markBlockForPostProcessing(short packedPosition, int index) {
+        delegate.markBlockForPostProcessing(packedPosition, index);
     }
 
     @Override
-    public void addTileEntity(CompoundNBT nbt) {
-        delegate.addTileEntity(nbt);
-    }
-
-    @Override
-    @Nullable
-    public CompoundNBT getDeferredTileEntity(BlockPos pos) {
-        return delegate.getDeferredTileEntity(pos);
+    public void addPendingBlockEntityTag(CompoundTag nbt) {
+        delegate.addPendingBlockEntityTag(nbt);
     }
 
     @Override
     @Nullable
-    public CompoundNBT getTileEntityNBT(BlockPos pos) {
-        return delegate.getTileEntityNBT(pos);
+    public CompoundTag getBlockEntityTag(BlockPos pos) {
+        return delegate.getBlockEntityTag(pos);
     }
 
     @Override
-    public Stream<BlockPos> getLightSources() {
-        return delegate.getLightSources();
+    @Nullable
+    public CompoundTag getPackedBlockEntityTag(BlockPos pos) {
+        return delegate.getPackedBlockEntityTag(pos);
     }
 
     @Override
-    public ITickList<Block> getBlocksToBeTicked() {
-        return delegate.getBlocksToBeTicked();
+    public Stream<BlockPos> getLightSourcesStream() {
+        return delegate.getLightSourcesStream();
     }
 
     @Override
-    public ITickList<Fluid> getFluidsToBeTicked() {
-        return delegate.getFluidsToBeTicked();
+    public TickScheduler<Block> getBlockTickScheduler() {
+        return delegate.getBlockTickScheduler();
+    }
+
+    @Override
+    public TickScheduler<Fluid> getFluidTickScheduler() {
+        return delegate.getFluidTickScheduler();
     }
 
     @Override
@@ -237,25 +237,25 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public boolean hasLight() {
-        return delegate.hasLight();
+    public boolean isLightOn() {
+        return delegate.isLightOn();
     }
 
     @Override
-    public void setLight(boolean lightCorrectIn) {
-        delegate.setLight(lightCorrectIn);
+    public void setLightOn(boolean lightCorrectIn) {
+        delegate.setLightOn(lightCorrectIn);
     }
+
+//    @Override
+//    @Nullable
+//    public WorldAccess getWorldForge() {
+//        return delegate.getWorldForge();
+//    }
 
     @Override
     @Nullable
-    public IWorld getWorldForge() {
-        return delegate.getWorldForge();
-    }
-
-    @Override
-    @Nullable
-    public TileEntity getTileEntity(BlockPos pos) {
-        return delegate.getTileEntity(pos);
+    public BlockEntity getBlockEntity(BlockPos pos) {
+        return delegate.getBlockEntity(pos);
     }
 
     @Override
@@ -269,8 +269,8 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public int getLightValue(BlockPos pos) {
-        return delegate.getLightValue(pos);
+    public int getLuminance(BlockPos pos) {
+        return delegate.getLuminance(pos);
     }
 
     @Override
@@ -284,63 +284,63 @@ public class ChunkDelegate implements IChunk {
     }
 
     @Override
-    public Stream<BlockState> func_234853_a_(AxisAlignedBB p_234853_1_) {
-        return delegate.func_234853_a_(p_234853_1_);
+    public Stream<BlockState> method_29546(Box p_234853_1_) {
+        return delegate.method_29546(p_234853_1_);
     }
 
     @Override
-    public BlockRayTraceResult rayTraceBlocks(RayTraceContext context) {
-        return delegate.rayTraceBlocks(context);
-    }
-
-    @Override
-    @Nullable
-    public BlockRayTraceResult rayTraceBlocks(Vector3d startVec, Vector3d endVec, BlockPos pos, VoxelShape shape, BlockState state) {
-        return delegate.rayTraceBlocks(startVec, endVec, pos, shape, state);
-    }
-
-    @Override
-    public double func_242402_a(VoxelShape p_242402_1_, Supplier<VoxelShape> p_242402_2_) {
-        return delegate.func_242402_a(p_242402_1_, p_242402_2_);
-    }
-
-    @Override
-    public double func_242403_h(BlockPos p_242403_1_) {
-        return delegate.func_242403_h(p_242403_1_);
+    public BlockHitResult raycast(RaycastContext context) {
+        return delegate.raycast(context);
     }
 
     @Override
     @Nullable
-    public StructureStart<?> func_230342_a_(Structure<?> p_230342_1_) {
-        return delegate.func_230342_a_(p_230342_1_);
+    public BlockHitResult raycastBlock(Vec3d startVec, Vec3d endVec, BlockPos pos, VoxelShape shape, BlockState state) {
+        return delegate.raycastBlock(startVec, endVec, pos, shape, state);
     }
 
     @Override
-    public void func_230344_a_(Structure<?> p_230344_1_, StructureStart<?> p_230344_2_) {
-        delegate.func_230344_a_(p_230344_1_, p_230344_2_);
+    public double getDismountHeight(VoxelShape p_242402_1_, Supplier<VoxelShape> p_242402_2_) {
+        return delegate.getDismountHeight(p_242402_1_, p_242402_2_);
     }
 
     @Override
-    public LongSet func_230346_b_(Structure<?> p_230346_1_) {
-        return delegate.func_230346_b_(p_230346_1_);
+    public double getDismountHeight(BlockPos p_242403_1_) {
+        return delegate.getDismountHeight(p_242403_1_);
     }
 
     @Override
-    public void func_230343_a_(Structure<?> p_230343_1_, long p_230343_2_) {
-        delegate.func_230343_a_(p_230343_1_, p_230343_2_);
+    @Nullable
+    public StructureStart<?> getStructureStart(StructureFeature<?> p_230342_1_) {
+        return delegate.getStructureStart(p_230342_1_);
     }
 
     @Override
-    public Map<Structure<?>, LongSet> getStructureReferences() {
+    public void setStructureStart(StructureFeature<?> p_230344_1_, StructureStart<?> p_230344_2_) {
+        delegate.setStructureStart(p_230344_1_, p_230344_2_);
+    }
+
+    @Override
+    public LongSet getStructureReferences(StructureFeature<?> p_230346_1_) {
+        return delegate.getStructureReferences(p_230346_1_);
+    }
+
+    @Override
+    public void addStructureReference(StructureFeature<?> p_230343_1_, long p_230343_2_) {
+        delegate.addStructureReference(p_230343_1_, p_230343_2_);
+    }
+
+    @Override
+    public Map<StructureFeature<?>, LongSet> getStructureReferences() {
         return delegate.getStructureReferences();
     }
 
     @Override
-    public void setStructureReferences(Map<Structure<?>, LongSet> structureReferences) {
+    public void setStructureReferences(Map<StructureFeature<?>, LongSet> structureReferences) {
         delegate.setStructureReferences(structureReferences);
     }
 
-    public static IChunk unwrap(IChunk chunk) {
+    public static Chunk unwrap(Chunk chunk) {
         if (chunk instanceof ChunkDelegate) {
             return unwrap(((ChunkDelegate) chunk).getDelegate());
         }

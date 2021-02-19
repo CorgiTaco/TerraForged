@@ -28,24 +28,23 @@ import com.terraforged.mod.Log;
 import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.mod.featuremanager.data.FolderDataPackFinder;
 import com.terraforged.mod.profiler.Profiler;
-import net.minecraft.resources.ResourcePackList;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.server.FMLServerStoppedEvent;
+import net.fabricmc.fabric.api.event.server.ServerStopCallback;
+import net.minecraft.resource.ResourcePackManager;
 
 import java.io.File;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class ServerEvents {
+    public static void serverStop() {
+        ServerStopCallback.EVENT.register(minecraftServer -> {
+            File dir = minecraftServer.getFile("dumps");
+            Profiler.dump(dir);
+        });
 
-    @SubscribeEvent
-    public static void serverStop(FMLServerStoppedEvent event) {
-        File dir = event.getServer().getFile("dumps");
-        Profiler.dump(dir);
+
     }
 
-    public static void addPackFinder(ResourcePackList packList) {
+    public static void addPackFinder(ResourcePackManager packList) {
         Log.info("Adding DataPackFinder");
-        packList.addPackFinder(new FolderDataPackFinder(TerraForgedMod.DATAPACK_DIR));
+        ((IProvidersAdder) packList).addPack(new FolderDataPackFinder(TerraForgedMod.DATAPACK_DIR));
     }
 }

@@ -28,7 +28,7 @@ import com.terraforged.mod.chunk.settings.TerraSettings;
 import com.terraforged.mod.client.gui.screen.Instance;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayScreen;
 import com.terraforged.mod.util.TranslationKey;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.function.Function;
 
@@ -39,7 +39,7 @@ public class SimplePage extends BasePage {
     protected final Instance instance;
     protected final Function<TerraSettings, Object> section;
 
-    protected CompoundNBT sectionSettings = null;
+    protected CompoundTag sectionSettings = null;
 
     public SimplePage(TranslationKey title, String sectionName, Instance instance, Function<TerraSettings, Object> section) {
         this.title = title.get();
@@ -70,7 +70,7 @@ public class SimplePage extends BasePage {
         super.update();
     }
 
-    private CompoundNBT getSectionSettings() {
+    private CompoundTag getSectionSettings() {
         return instance.settingsData.getCompound(sectionName);
     }
 }

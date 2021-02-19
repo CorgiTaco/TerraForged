@@ -30,7 +30,7 @@ import com.google.gson.JsonNull;
 import com.terraforged.engine.world.biome.map.BiomeContext;
 import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.featuremanager.modifier.Jsonifiable;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 
 import java.util.Collections;
@@ -58,7 +58,6 @@ public class BiomeMatcher implements Predicate<Biome>, Comparable<BiomeMatcher>,
     public JsonElement toJson(BiomeContext<?> context) {
         if (!biomes.isEmpty()) {
             JsonArray array = new JsonArray();
-            biomes.stream().map(Biome::getRegistryName).map(Objects::toString).sorted().forEach(array::add);
             return array;
         }
         return JsonNull.INSTANCE;
@@ -114,7 +113,7 @@ public class BiomeMatcher implements Predicate<Biome>, Comparable<BiomeMatcher>,
     public static BiomeMatcher of(TFBiomeContext context, RegistryKey<Biome>... biomes) {
         BiomeMatcherParser.Collector collector = new BiomeMatcherParser.Collector();
         for (RegistryKey<Biome> name : biomes) {
-            BiomeMatcherParser.collectBiomes(name.getLocation().toString(), collector, context);
+            BiomeMatcherParser.collectBiomes(name.getValue().toString(), collector, context);
         }
         return collector.create();
     }

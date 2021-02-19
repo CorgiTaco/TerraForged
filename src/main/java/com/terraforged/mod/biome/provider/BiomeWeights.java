@@ -32,10 +32,7 @@ import com.terraforged.mod.config.ConfigManager;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.BiomeManager;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -62,24 +59,20 @@ public class BiomeWeights implements IntUnaryOperator {
         Set<String> validBiomes = BiomeAnalyser.getOverworldBiomesSet(context, context.biomes::getName);
 
         // Get biome weights from Forge
-        for (BiomeManager.BiomeType type : BiomeManager.BiomeType.values()) {
-            List<BiomeManager.BiomeEntry> entries = BiomeManager.getBiomes(type);
-            if (entries == null) {
-                continue;
-            }
 
-            for (BiomeManager.BiomeEntry entry : entries) {
-                Biome biome = context.biomes.get(entry.getKey());
-                String name = context.biomes.getName(biome);
-                if (validBiomes.contains(name)) {
-                    biomes.put(name.toString(), entry.itemWeight);
-                }
+        BiomeHelper.OVERWORLD_BIOMES.forEach(((biomeRegistryKey, weight) -> {
+            Biome biome = context.biomes.get(biomeRegistryKey);
+            String name = context.biomes.getName(biome);
+            if (validBiomes.contains(name)) {
+                biomes.put(name.toString(), (int) (weight * 10));
             }
-        }
+        }));
+
 
         // TF config gets final say
         readWeights(validBiomes);
     }
+
 
     @Override
     public int applyAsInt(int biome) {
@@ -92,9 +85,9 @@ public class BiomeWeights implements IntUnaryOperator {
         if (value != null) {
             return value;
         }
-        if (BiomeDictionary.getTypes(context.getValue(biome)).contains(BiomeDictionary.Type.RARE)) {
-            return rareWeight;
-        }
+//        if (BiomeDictionary.getTypes(context.getValue(biome)).contains(BiomeDictionary.Type.RARE)) {
+//            return rareWeight;
+//        }
         if (context.biomes.get(biome).getCategory() == Biome.Category.FOREST) {
             return forestWeight;
         }

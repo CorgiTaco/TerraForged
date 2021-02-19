@@ -31,7 +31,7 @@ import com.terraforged.mod.featuremanager.matcher.BiomeFeatureMatcher;
 import com.terraforged.mod.featuremanager.matcher.biome.BiomeMatcher;
 import com.terraforged.mod.featuremanager.matcher.feature.FeatureMatcher;
 import net.minecraft.block.Blocks;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.tag.BlockTags;
 import net.minecraft.world.biome.Biome;
 import net.minecraft.world.gen.feature.Feature;
 

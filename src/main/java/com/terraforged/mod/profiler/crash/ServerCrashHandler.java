@@ -25,9 +25,9 @@
 package com.terraforged.mod.profiler.crash;
 
 import com.terraforged.mod.chunk.TFChunkGenerator;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.ReportedException;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.util.crash.CrashException;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.world.chunk.Chunk;
 
 import java.util.concurrent.locks.StampedLock;
 
@@ -36,10 +36,10 @@ public class ServerCrashHandler implements CrashHandler {
     private final StampedLock lock = new StampedLock();
 
     @Override
-    public void crash(IChunk chunk, TFChunkGenerator generator, Throwable t) {
+    public void crash(Chunk chunk, TFChunkGenerator generator, Throwable t) {
         // lock without release to prevent spamming
         lock.writeLock();
         CrashReport report = CrashReportBuilder.buildCrashReport(chunk, generator, t);
-        throw new ReportedException(report);
+        throw new CrashException(report);
     }
 }

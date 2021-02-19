@@ -28,10 +28,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.terraforged.mod.featuremanager.FeatureSerializer;
-import net.minecraft.world.gen.GenerationStage;
-
 import java.util.Map;
 import java.util.Optional;
+import net.minecraft.world.gen.GenerationStep;
 
 public class FeatureParser {
 
@@ -56,7 +55,7 @@ public class FeatureParser {
 
     public static Optional<FeatureAppender> parseAppender(JsonObject root) {
         if (root.has("stage")) {
-            GenerationStage.Decoration stage = GenerationStage.Decoration.valueOf(root.get("stage").getAsString());
+            GenerationStep.Feature stage = GenerationStep.Feature.valueOf(root.get("stage").getAsString());
             if (root.has(InjectionPosition.HEAD.getName())) {
                 return FeatureSerializer.deserialize(root.get(InjectionPosition.HEAD.getName()))
                         .map(feature -> new FeatureAppender(feature, InjectionPosition.HEAD, stage));

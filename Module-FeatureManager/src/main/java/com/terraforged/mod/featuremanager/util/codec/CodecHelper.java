@@ -30,8 +30,8 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.OptionalDynamic;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.world.gen.treedecorator.TreeDecorator;
-import net.minecraft.world.gen.treedecorator.TreeDecoratorType;
+import net.minecraft.world.gen.tree.TreeDecorator;
+import net.minecraft.world.gen.tree.TreeDecoratorType;
 
 public class CodecHelper {
 
@@ -52,7 +52,7 @@ public class CodecHelper {
     }
 
     public static <T> TreeDecorator treeDecorator(TreeDecoratorType<?> type, T t, DynamicOps<T> ops) {
-        return Codecs.getResult(type.func_236876_a_().decode(ops, t).map(Pair::getFirst))
+        return Codecs.getResult(type.getCodec().decode(ops, t).map(Pair::getFirst))
                 .orElseThrow(CodecException.get("Cannot decode TreeDecoratorType(%s) %s", type, t));
     }
 }

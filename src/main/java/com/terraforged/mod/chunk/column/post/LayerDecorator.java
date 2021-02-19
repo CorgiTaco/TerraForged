@@ -34,9 +34,9 @@ import com.terraforged.mod.api.material.layer.LayerMaterial;
 import com.terraforged.mod.api.material.state.States;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.SpreadableSnowyDirtBlock;
+import net.minecraft.block.SpreadableBlock;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class LayerDecorator implements ColumnDecorator {
 
@@ -47,14 +47,14 @@ public class LayerDecorator implements ColumnDecorator {
     }
 
     @Override
-    public void decorate(IChunk chunk, DecoratorContext context, int x, int y, int z) {
-        context.pos.setPos(x, y + 1, z);
+    public void decorate(Chunk chunk, DecoratorContext context, int x, int y, int z) {
+        context.pos.set(x, y + 1, z);
 
         BlockState state = chunk.getBlockState(context.pos);
-        if (state.isAir(chunk, context.pos)) {
-            context.pos.setPos(x, y, z);
+        if (state.isAir()) {
+            context.pos.set(x, y, z);
             state = chunk.getBlockState(context.pos);
-            if (state.isAir(chunk, context.pos)) {
+            if (state.isAir()) {
                 return;
             }
         }
@@ -67,7 +67,7 @@ public class LayerDecorator implements ColumnDecorator {
         setLayer(chunk, context.pos, material, context.cell, context.levels, 0F);
     }
 
-    private void setLayer(IChunk chunk, BlockPos pos, LayerMaterial material, Cell cell, Levels levels, float min) {
+    private void setLayer(Chunk chunk, BlockPos pos, LayerMaterial material, Cell cell, Levels levels, float min) {
         float height = cell.value * levels.worldHeight;
         float depth = material.getDepth(height);
         if (depth > min) {
@@ -82,14 +82,14 @@ public class LayerDecorator implements ColumnDecorator {
         }
     }
 
-    private void fixBaseBlock(IChunk chunk, BlockPos pos, BlockState layerMaterial, int level) {
-        if (level > 1 && layerMaterial.isIn(Blocks.SNOW)) {
+    private void fixBaseBlock(Chunk chunk, BlockPos pos, BlockState layerMaterial, int level) {
+        if (level > 1 && layerMaterial.isOf(Blocks.SNOW)) {
             BlockPos pos1 = pos.down();
             BlockState below = chunk.getBlockState(pos1);
 
             // Turns to dirt if submerged or the light-level is low. Light hasn't been calc'd at this
             // at this stage of world-gen so just blanket set everything to snowy dirt.
-            if (below.getBlock() instanceof SpreadableSnowyDirtBlock) {
+            if (below.getBlock() instanceof SpreadableBlock) {
                 chunk.setBlockState(pos1, States.DIRT_SNOW.get(), false);
             }
         }

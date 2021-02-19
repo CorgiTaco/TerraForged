@@ -25,14 +25,14 @@
 package com.terraforged.mod.chunk.fix;
 
 import com.terraforged.mod.chunk.TFChunkGenerator;
-import net.minecraft.world.gen.WorldGenRegion;
+import net.minecraft.world.ChunkRegion;
 
 // fixes hard-coded water and world height values
 public class RegionFix extends RegionDelegate {
 
     private final TFChunkGenerator generator;
 
-    public RegionFix(WorldGenRegion region, TFChunkGenerator generator) {
+    public RegionFix(ChunkRegion region, TFChunkGenerator generator) {
         super(region);
         this.generator = generator;
     }
@@ -43,7 +43,7 @@ public class RegionFix extends RegionDelegate {
     }
 
     @Override // getWorldHeight
-    public int func_234938_ad_() {
-        return generator.getMaxBuildHeight();
+    public int getDimensionHeight() {
+        return generator.getWorldHeight();
     }
 }

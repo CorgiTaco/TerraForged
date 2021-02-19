@@ -33,7 +33,7 @@ import com.terraforged.mod.featuremanager.modifier.ModifierSet;
 import com.terraforged.mod.featuremanager.template.template.TemplateManager;
 import com.terraforged.mod.featuremanager.transformer.InjectionPosition;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -110,7 +110,7 @@ public class FeatureManager implements FeatureDecorator {
     private static BiomeFeatures compute(Biome biome, FeatureModifiers modifiers) {
         BiomeFeatures.Builder builder = BiomeFeatures.builder();
         List<List<Supplier<ConfiguredFeature<?, ?>>>> features = biome.getGenerationSettings().getFeatures();
-        for (GenerationStage.Decoration stage : GenerationStage.Decoration.values()) {
+        for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
             // add 'prepend' injectors to the head of the feature list
             builder.add(stage, modifiers.getAppenders(stage, biome, InjectionPosition.HEAD));
 

@@ -29,8 +29,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.biome.provider.analyser.BiomeAnalyser;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.world.biome.Biome;
 
 import java.io.*;
@@ -41,7 +41,7 @@ public class DataGen {
 
     public static void dumpData() {
         File dataDir = new File("data").getAbsoluteFile();
-        TFBiomeContext context = new TFBiomeContext(DynamicRegistries.func_239770_b_());
+        TFBiomeContext context = new TFBiomeContext(DynamicRegistryManager.create());
         Biome[] biomes = BiomeAnalyser.getOverworldBiomes(context);
         WorldGenBiomes.genBiomeMap(dataDir, context);
         WorldGenBiomes.genBiomeData(dataDir, biomes, context);
@@ -77,7 +77,7 @@ public class DataGen {
         GSON.toJson(json, writer);
     }
 
-    protected static String getJsonPath(String type, ResourceLocation location) {
+    protected static String getJsonPath(String type, Identifier location) {
         if (location == null) {
             return "unknown";
         }

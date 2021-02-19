@@ -24,26 +24,26 @@
 
 package com.terraforged.mod.api.feature.decorator;
 
+import com.terraforged.engine.world.heightmap.Levels;
 import com.terraforged.mod.biome.TFBiomeContainer;
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.chunk.fix.RegionDelegate;
-import com.terraforged.engine.world.heightmap.Levels;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.world.ChunkRegion;
+import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.WorldGenRegion;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public class DecorationContext {
 
-    private final IChunk chunk;
+    private final Chunk chunk;
     private final Levels levels;
-    private final WorldGenRegion region;
+    private final ChunkRegion region;
     private final TFBiomeContainer biomes;
     private final TFChunkGenerator generator;
 
-    public DecorationContext(WorldGenRegion region, IChunk chunk, TFBiomeContainer biomes, TFChunkGenerator generator) {
+    public DecorationContext(ChunkRegion region, Chunk chunk, TFBiomeContainer biomes, TFChunkGenerator generator) {
         this.chunk = chunk;
         this.region = region;
         this.biomes = biomes;
@@ -51,11 +51,11 @@ public class DecorationContext {
         this.levels = generator.getContext().levels;
     }
 
-    public IChunk getChunk() {
+    public Chunk getChunk() {
         return chunk;
     }
 
-    public WorldGenRegion getRegion() {
+    public ChunkRegion getRegion() {
         return region;
     }
 
@@ -75,13 +75,13 @@ public class DecorationContext {
         return generator;
     }
 
-    public static DecorationContext of(ISeedReader world, ChunkGenerator generator) {
+    public static DecorationContext of(StructureWorldAccess world, ChunkGenerator generator) {
         if (generator instanceof TFChunkGenerator && world instanceof RegionDelegate) {
             TFChunkGenerator terraGenerator = (TFChunkGenerator) generator;
-            WorldGenRegion region = ((RegionDelegate) world).getDelegate();
-            IChunk chunk = region.getChunk(region.getMainChunkX(), region.getMainChunkZ());
-            if (chunk.getBiomes() instanceof TFBiomeContainer) {
-                TFBiomeContainer container = (TFBiomeContainer) chunk.getBiomes();
+            ChunkRegion region = ((RegionDelegate) world).getDelegate();
+            Chunk chunk = region.getChunk(region.getCenterChunkX(), region.getCenterChunkZ());
+            if (chunk.getBiomeArray() instanceof TFBiomeContainer) {
+                TFBiomeContainer container = (TFBiomeContainer) chunk.getBiomeArray();
                 return new DecorationContext(region, chunk, container, terraGenerator);
             }
         }

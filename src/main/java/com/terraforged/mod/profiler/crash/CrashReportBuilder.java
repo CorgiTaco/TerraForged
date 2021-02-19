@@ -33,12 +33,12 @@ import com.terraforged.mod.profiler.ProfilerPrinter;
 import com.terraforged.mod.util.DataUtils;
 import com.terraforged.mod.util.reflect.Accessor;
 import com.terraforged.mod.util.reflect.FieldAccessor;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.crash.CrashReportCategory;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.feature.structure.Structure;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.util.crash.CrashReportSection;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -50,66 +50,67 @@ public class CrashReportBuilder {
 
     private static final FieldAccessor<CrashReport, ?> ACCESSOR = Accessor.field(CrashReport.class, boolean.class);
 
-    public static CrashReport buildCrashReport(IChunk chunk, TFChunkGenerator generator, Throwable t) {
+    public static CrashReport buildCrashReport(Chunk chunk, TFChunkGenerator generator, Throwable t) {
         CrashReport report = new CrashReport(t.getMessage(), t.getCause());
         // prevents pollution of the report with duplicate stack-traces
         ACCESSOR.setUnchecked(report, false);
         try {
             addContext(chunk, generator, report);
         } catch (Throwable ctx) {
-            report.makeCategory("Reporting Exception").addCrashSectionThrowable("Uh Oh", ctx);
+            report.addElement("Reporting Exception").add("Uh Oh", ctx);
         }
         return report;
     }
 
-    private static void addContext(IChunk chunk, TFChunkGenerator generator, CrashReport report) {
-        addContext(chunk, report.makeCategory("Current Chunk"));
-        addContext(generator, report.makeCategory("TerraForged ChunkGenerator"));
-        addContext(generator.getBiomeProvider(), report.makeCategory("TerraForged BiomeProvider"));
-        addContext(ConfigManager.PERFORMANCE, report.makeCategory("TerraForged Performance Config"));
-        addContext(ConfigManager.BIOME_WEIGHTS, report.makeCategory("TerraForged Biome Weights Config"));
-        addProfilerContext(report.makeCategory("TerraForged Profiler"));
+    private static void addContext(Chunk chunk, TFChunkGenerator generator, CrashReport report) {
+        addContext(chunk, report.addElement("Current Chunk"));
+        addContext(generator, report.addElement("TerraForged ChunkGenerator"));
+        addContext(generator.getBiomeSource(), report.addElement("TerraForged BiomeProvider"));
+        addContext(ConfigManager.PERFORMANCE, report.addElement("TerraForged Performance Config"));
+        addContext(ConfigManager.BIOME_WEIGHTS, report.addElement("TerraForged Biome Weights Config"));
+        addProfilerContext(report.addElement("TerraForged Profiler"));
     }
 
-    private static void addContext(IChunk chunk, CrashReportCategory report) {
-        report.addDetail("Pos", chunk.getPos());
-        report.addDetail("Status", chunk.getStatus().getName());
-        report.addDetail("Structure Starts", getStructures(chunk.getStructureStarts()));
-        report.addDetail("Structure Refs", getStructures(chunk.getStructureReferences()));
+    private static void addContext(Chunk chunk, CrashReportSection report) {
+        report.add("Pos", chunk.getPos());
+        report.add("Status", chunk.getStatus().getId());
+        report.add("Structure Starts", getStructures(chunk.getStructureStarts()));
+        report.add("Structure Refs", getStructures(chunk.getStructureReferences()));
     }
 
-    private static void addContext(TFChunkGenerator generator, CrashReportCategory report) {
-        report.addDetail("Seed", generator.getSeed());
-        report.addDetail("Settings", DataUtils.toJson(generator.getContext().terraSettings));
+    private static void addContext(TFChunkGenerator generator, CrashReportSection report) {
+        report.add("Seed", generator.getSeed());
+        report.add("Settings", DataUtils.toJson(generator.getContext().terraSettings));
     }
 
-    private static void addContext(TFBiomeProvider biomes, CrashReportCategory report) {
-        report.addDetail("Overworld Biomes", biomes.getBiomes().stream().map(Biome::getRegistryName).collect(Collectors.toList()));
+    //TODO: Pull Dynamic Registries
+    private static void addContext(TFBiomeProvider biomes, CrashReportSection report) {
+//        report.add("Overworld Biomes", biomes.getBiomes().stream().map(Biome::getRegistryName).collect(Collectors.toList()));
 //        report.addDetail("Biome Map", biomes.getBiomeMap().toJson(biomes.getContext().gameContext));
     }
 
-    private static void addContext(ConfigRef ref, CrashReportCategory report) {
-        ref.forEach(report::addDetail);
+    private static void addContext(ConfigRef ref, CrashReportSection report) {
+        ref.forEach(report::add);
     }
 
-    private static void addProfilerContext(CrashReportCategory report) {
+    private static void addProfilerContext(CrashReportSection report) {
         StringWriter writer = new StringWriter();
         try {
             ProfilerPrinter.print(writer, "\t\t");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        report.addDetail("Timings", "\n" + writer.toString());
+        report.add("Timings", "\n" + writer.toString());
     }
 
-    private static List<String> getStructures(Map<Structure<?>, ?> map) {
+    private static List<String> getStructures(Map<StructureFeature<?>, ?> map) {
         return map.keySet().stream().map(CrashReportBuilder::getStructureName).sorted().collect(Collectors.toList());
     }
 
-    private static String getStructureName(Structure<?> structure) {
-        ResourceLocation name = structure.getRegistryName();
+    private static String getStructureName(StructureFeature<?> structure) {
+        Identifier name = Registry.STRUCTURE_FEATURE.getId(structure);
         if (name == null) {
-            return structure.getStructureName();
+            return structure.getName();
         }
         return name.toString();
     }

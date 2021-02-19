@@ -27,7 +27,7 @@ package com.terraforged.mod.biome.context;
 import com.terraforged.engine.world.biome.TempCategory;
 import com.terraforged.engine.world.biome.map.BiomeContext;
 import com.terraforged.mod.biome.provider.BiomeHelper;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 
 public class BiomeProperties implements BiomeContext.Properties<RegistryKey<Biome>> {

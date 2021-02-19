@@ -25,12 +25,12 @@
 package com.terraforged.mod.api.material;
 
 import com.terraforged.mod.Log;
+import net.fabricmc.fabric.api.tag.TagRegistry;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ITag;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.Tags;
+import net.minecraft.tag.Tag;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,34 +39,34 @@ import java.util.function.Predicate;
 
 public class WGTags {
 
-    public static final ITag.INamedTag<Block> STONE = tag("forge:wg_stone");
-    public static final ITag.INamedTag<Block> DIRT = tag("forge:wg_dirt");
-    public static final ITag.INamedTag<Block> CLAY = tag("forge:wg_clay");
-    public static final ITag.INamedTag<Block> SEDIMENT = tag("forge:wg_sediment");
-    public static final ITag.INamedTag<Block> ERODIBLE = tag("forge:wg_erodible");
-    public static final List<ITag.INamedTag<Block>> WG_TAGS = Collections.unmodifiableList(Arrays.asList(STONE, DIRT, CLAY, SEDIMENT, ERODIBLE));
+    public static final Tag<Block> STONE = tag("wg_stone");
+    public static final Tag<Block> DIRT = tag("wg_dirt");
+    public static final Tag<Block> CLAY = tag("wg_clay");
+    public static final Tag<Block> SEDIMENT = tag("wg_sediment");
+    public static final Tag<Block> ERODIBLE = tag("wg_erodible");
+    public static final List<Tag<Block>> WG_TAGS = Collections.unmodifiableList(Arrays.asList(STONE, DIRT, CLAY, SEDIMENT, ERODIBLE));
 
     public static void init() {
         Log.info("Initializing tags");
     }
 
-    private static Tags.IOptionalNamedTag<Block> tag(String name) {
-        return BlockTags.createOptional(new ResourceLocation(name));
+    private static Tag<Block> tag(String name) {
+        return TagRegistry.block(new Identifier("c", name));
     }
 
     public static Predicate<BlockState> stone() {
         return toStatePredicate(STONE);
     }
 
-    private static Predicate<BlockState> toStatePredicate(ITag<Block> tag) {
+    private static Predicate<BlockState> toStatePredicate(Tag<Block> tag) {
         return state -> tag.contains(state.getBlock());
     }
 
     public static void printTags() {
-        for (ITag.INamedTag<Block> tag : WG_TAGS) {
-            Log.debug("World-Gen Tag: {}", tag.getName());
-            for (Block block : tag.getAllElements()) {
-                Log.debug(" - {}", block.getRegistryName());
+        for (Tag<Block> tag : WG_TAGS) {
+//            Log.debug("World-Gen Tag: {}", tag.());
+            for (Block block : tag.values()) {
+                Log.debug(" - {}", Registry.BLOCK.getId(block));
             }
         }
     }

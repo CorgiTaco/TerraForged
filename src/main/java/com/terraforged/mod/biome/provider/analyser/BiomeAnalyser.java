@@ -37,9 +37,9 @@ import com.terraforged.mod.biome.provider.BiomeHelper;
 import com.terraforged.mod.biome.provider.BiomeWeights;
 import com.terraforged.mod.util.ListView;
 import com.terraforged.noise.util.Vec2f;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.BiomeKeys;
 
 import java.util.*;
 import java.util.function.Function;
@@ -65,8 +65,8 @@ public class BiomeAnalyser {
             (biome, context) -> biome.getCategory() == Biome.Category.THEEND,
             (biome, context) -> biome.getCategory() == Biome.Category.NETHER,
             (biome, context) -> context.biomes.getName(biome).contains("hills"),
-            (biome, context) -> biome == context.biomes.get(Biomes.THE_VOID),
-            (biome, context) -> biome == context.biomes.get(Biomes.MOUNTAIN_EDGE),
+            (biome, context) -> biome == context.biomes.get(BiomeKeys.THE_VOID),
+            (biome, context) -> biome == context.biomes.get(BiomeKeys.MOUNTAIN_EDGE),
             (biome, context) -> !BiomeHelper.isOverworldBiome(biome, context),
     };
 
@@ -74,9 +74,9 @@ public class BiomeAnalyser {
         BiomeMap.Builder<RegistryKey<Biome>> builder = BiomeMapBuilder.create(context);
         BiomeWeights weights = new BiomeWeights(context);
         collectOverworldBiomes(context, weights, builder);
-        builder.addLand(BiomeType.TEMPERATE_RAINFOREST, Biomes.PLAINS, 5);
-        builder.addLand(BiomeType.TEMPERATE_FOREST, Biomes.FLOWER_FOREST, 2);
-        builder.addLand(BiomeType.TEMPERATE_FOREST, Biomes.PLAINS, 5);
+        builder.addLand(BiomeType.TEMPERATE_RAINFOREST, BiomeKeys.PLAINS, 5);
+        builder.addLand(BiomeType.TEMPERATE_FOREST, BiomeKeys.FLOWER_FOREST, 2);
+        builder.addLand(BiomeType.TEMPERATE_FOREST, BiomeKeys.PLAINS, 5);
         builder.addLand(BiomeType.TUNDRA, ModBiomes.SNOWY_TAIGA_SCRUB, 2);
         builder.addLand(BiomeType.TAIGA, ModBiomes.TAIGA_SCRUB, 2);
         return builder.build();
@@ -168,7 +168,7 @@ public class BiomeAnalyser {
             String name = context.biomes.getName(biome);
             float moisture = (biome.getDownfall() - moistRange.x) / (moistRange.y - moistRange.x);
             float temperature = (BiomeHelper.getDefaultTemperature(biome) - tempRange.x) / (tempRange.y - tempRange.x);
-            int color = BiomeHelper.getSurface(biome).getTop().getMaterial().getColor().colorValue;
+            int color = BiomeHelper.getSurface(biome).getTopMaterial().getMaterial().getColor().color;
             list.add(new BiomeData(name, context.biomes.getId(biome), color, moisture, temperature));
         }
 

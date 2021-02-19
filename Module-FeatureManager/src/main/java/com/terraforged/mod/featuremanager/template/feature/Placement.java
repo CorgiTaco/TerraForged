@@ -27,23 +27,23 @@ package com.terraforged.mod.featuremanager.template.feature;
 import com.terraforged.mod.featuremanager.template.BlockUtils;
 import com.terraforged.mod.featuremanager.template.template.Dimensions;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 
 public interface Placement {
 
     Placement ANY = new Placement() {
         @Override
-        public boolean canPlaceAt(IWorld world, BlockPos pos, Dimensions dimensions) {
+        public boolean canPlaceAt(WorldAccess world, BlockPos pos, Dimensions dimensions) {
             return true;
         }
 
         @Override
-        public boolean canReplaceAt(IWorld world, BlockPos pos) {
+        public boolean canReplaceAt(WorldAccess world, BlockPos pos) {
             return !BlockUtils.isSolid(world, pos);
         }
     };
 
-    boolean canPlaceAt(IWorld world, BlockPos pos, Dimensions dimensions);
+    boolean canPlaceAt(WorldAccess world, BlockPos pos, Dimensions dimensions);
 
-    boolean canReplaceAt(IWorld world, BlockPos pos);
+    boolean canReplaceAt(WorldAccess world, BlockPos pos);
 }

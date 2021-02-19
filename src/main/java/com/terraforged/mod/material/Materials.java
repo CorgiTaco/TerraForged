@@ -25,7 +25,6 @@
 package com.terraforged.mod.material;
 
 import com.terraforged.engine.concurrent.Resource;
-import com.terraforged.mod.Log;
 import com.terraforged.mod.api.material.WGTags;
 import com.terraforged.mod.api.material.layer.LayerManager;
 import com.terraforged.mod.api.material.state.States;
@@ -34,16 +33,14 @@ import com.terraforged.mod.chunk.util.DummyBlockReader;
 import it.unimi.dsi.fastutil.objects.ObjectOpenHashSet;
 import it.unimi.dsi.fastutil.objects.ObjectSets;
 import net.minecraft.block.*;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.tags.ITag;
+import net.minecraft.tag.BlockTags;
+import net.minecraft.tag.Tag;
 import net.minecraft.util.math.BlockPos;
-import net.minecraftforge.registries.IForgeRegistryEntry;
+import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 
 public class Materials {
-
-    private static final Comparator<IForgeRegistryEntry<?>> COMPARATOR = Comparator.comparing(IForgeRegistryEntry::getRegistryName);
 
     public final LayerManager layerManager = new LayerManager();
     public final Set<Block> stone;
@@ -92,9 +89,9 @@ public class Materials {
         return block instanceof GrassBlock || block instanceof MyceliumBlock;
     }
 
-    private static Set<Block> createSet(ITag<Block> tag, Block def) {
+    private static Set<Block> createSet(Tag<Block> tag, Block def) {
         try {
-            ObjectOpenHashSet<Block> set = new ObjectOpenHashSet<>(tag.getAllElements());
+            ObjectOpenHashSet<Block> set = new ObjectOpenHashSet<>(tag.values());
             if (set.isEmpty() && def != null) {
                 set.add(def);
             }
@@ -104,9 +101,9 @@ public class Materials {
         }
     }
 
-    private static Set<Block> createSet(ITag.INamedTag<Block> tag, Block def, ITag.INamedTag<Block> required) {
+    private static Set<Block> createSet(Tag<Block> tag, Block def, Tag.Identified<Block> required) {
         try {
-            ObjectOpenHashSet<Block> set = new ObjectOpenHashSet<>(tag.getAllElements());
+            ObjectOpenHashSet<Block> set = new ObjectOpenHashSet<>(tag.values());
             set.removeIf(block -> isAbsent(block, tag, required));
 
             if (set.isEmpty() && def != null) {
@@ -118,9 +115,9 @@ public class Materials {
         }
     }
 
-    private static boolean isAbsent(Block block, ITag.INamedTag<Block> a, ITag.INamedTag<Block> b) {
+    private static boolean isAbsent(Block block, Tag<Block> a, Tag.Identified<Block> b) {
         if (!b.contains(block)) {
-            Log.info("Block {} is in tag {} but not tag {}. It has been excluded from TerraForged's rock layer generation!", block.getRegistryName(), a.getName(), b.getName());
+//            Log.info("Block {} is in tag {} but not tag {}. It has been excluded from TerraForged's rock layer generation!", Registry.BLOCK.getId(block), a.getId(), b.getId());
             return true;
         }
         return false;
@@ -129,13 +126,13 @@ public class Materials {
     public static float getHardness(BlockState state) {
         try (Resource<DummyBlockReader> reader = DummyBlockReader.pooled()) {
             reader.get().set(state);
-            return state.getBlockHardness(reader.get(), BlockPos.ZERO);
+            return state.getHardness(reader.get(), BlockPos.ORIGIN);
         }
     }
 
-    public static <T extends IForgeRegistryEntry<T>> List<T> toList(Collection<T> collection) {
-        List<T> list = new ArrayList<>(collection);
-        list.sort(Materials.COMPARATOR);
+    public static List<Block> toList(Collection<Block> collection) {
+        List<Block> list = new ArrayList<>(collection);
+        list.sort(Comparator.comparing(block -> Registry.BLOCK.getId(block).toString()));
         return Collections.unmodifiableList(list);
     }
 

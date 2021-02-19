@@ -25,15 +25,14 @@
 package com.terraforged.mod.featuremanager.predicate;
 
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
-
+import net.minecraft.world.chunk.Chunk;
 import java.util.function.BiPredicate;
 
-public interface FeaturePredicate extends BiPredicate<IChunk, Biome> {
+public interface FeaturePredicate extends BiPredicate<Chunk, Biome> {
 
     FeaturePredicate ALLOW = new Direct("allow", true);
     FeaturePredicate DENY = new Direct("deny", false);
 
     @Override
-    boolean test(IChunk chunk, Biome biome);
+    boolean test(Chunk chunk, Biome biome);
 }

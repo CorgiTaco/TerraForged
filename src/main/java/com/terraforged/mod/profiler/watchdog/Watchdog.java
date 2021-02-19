@@ -30,7 +30,7 @@ import com.terraforged.mod.config.ConfigManager;
 import com.terraforged.mod.profiler.Profiler;
 import com.terraforged.mod.profiler.crash.CrashHandler;
 import com.terraforged.mod.profiler.crash.WorldGenException;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class Watchdog implements Runnable {
 
@@ -70,7 +70,7 @@ public class Watchdog implements Runnable {
         }
     }
 
-    public static WatchdogContext punchIn(IChunk chunk, TFChunkGenerator generator, long duration) {
+    public static WatchdogContext punchIn(Chunk chunk, TFChunkGenerator generator, long duration) {
         if (duration > 0) {
             WatchdogContext context = INSTANCE.contextPool.get();
             if (context.set(chunk, generator, duration)) {

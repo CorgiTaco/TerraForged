@@ -25,8 +25,8 @@
 package com.terraforged.mod.featuremanager.template.template;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 
 public class BlockInfo {
@@ -47,7 +47,7 @@ public class BlockInfo {
         return state;
     }
 
-    public BlockInfo transform(Mirror mirror, Rotation rotation) {
+    public BlockInfo transform(BlockMirror mirror, BlockRotation rotation) {
         BlockPos pos = Template.transform(this.pos, mirror, rotation);
         BlockState state = this.state.mirror(mirror).rotate(rotation);
         return new BlockInfo(pos, state);

@@ -26,16 +26,16 @@ package com.terraforged.mod.featuremanager.template.decorator;
 
 import com.terraforged.mod.featuremanager.util.delegate.SeedWorldDelegate;
 import net.minecraft.block.BlockState;
+import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.world.StructureWorldAccess;
 
 public abstract class BoundsRecorder extends SeedWorldDelegate {
 
     private BlockPos.Mutable min = null;
     private BlockPos.Mutable max = null;
 
-    public BoundsRecorder(ISeedReader delegate) {
+    public BoundsRecorder(StructureWorldAccess delegate) {
         super(delegate);
     }
 
@@ -55,11 +55,11 @@ public abstract class BoundsRecorder extends SeedWorldDelegate {
         }
     }
 
-    public MutableBoundingBox getBounds() {
+    public BlockBox getBounds() {
         if (min == null || max == null) {
-            return MutableBoundingBox.getNewBoundingBox();
+            return BlockBox.empty();
         }
-        return MutableBoundingBox.createProper(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
+        return BlockBox.create(min.getX(), min.getY(), min.getZ(), max.getX(), max.getY(), max.getZ());
     }
 
     private void recordMin(int x, int y, int z) {
@@ -69,7 +69,7 @@ public abstract class BoundsRecorder extends SeedWorldDelegate {
             x = Math.min(x, min.getX());
             y = Math.min(y, min.getY());
             z = Math.min(z, min.getZ());
-            min.setPos(x, y, z);
+            min.set(x, y, z);
         }
     }
 
@@ -80,7 +80,7 @@ public abstract class BoundsRecorder extends SeedWorldDelegate {
             x = Math.max(x, max.getX());
             y = Math.max(y, max.getY());
             z = Math.max(z, max.getZ());
-            max.setPos(x, y, z);
+            max.set(x, y, z);
         }
     }
 }

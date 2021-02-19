@@ -87,8 +87,8 @@ public abstract class Search implements Supplier<BlockPos>, SafeCloseable {
             }
 
             if ((-radius <= x) && (x <= radius) && (-radius <= z) && (z <= radius)) {
-                pos.setPos(center.getX() + (x * getSpacing()), center.getY(), center.getZ() + (z * getSpacing()));
-                if (minRadius2 == 0 || center.distanceSq(pos) >= minRadius2) {
+                pos.set(center.getX() + (x * getSpacing()), center.getY(), center.getZ() + (z * getSpacing()));
+                if (minRadius2 == 0 || center.getSquaredDistance(pos) >= minRadius2) {
                     if (test(pos)) {
                         return success(pos);
                     }
@@ -105,7 +105,7 @@ public abstract class Search implements Supplier<BlockPos>, SafeCloseable {
             z += dz;
         }
 
-        return fail(BlockPos.ZERO);
+        return fail(BlockPos.ORIGIN);
     }
 
     public abstract boolean test(BlockPos pos);

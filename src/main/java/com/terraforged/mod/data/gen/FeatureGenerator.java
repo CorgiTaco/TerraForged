@@ -24,32 +24,20 @@
 
 package com.terraforged.mod.data.gen;
 
-import com.terraforged.mod.chunk.SetupFactory;
-import com.terraforged.mod.data.gen.feature.Ores;
-import com.terraforged.mod.data.gen.feature.Sediments;
-import com.terraforged.mod.data.gen.feature.Shrubs;
-import com.terraforged.mod.data.gen.feature.Trees;
-import com.terraforged.mod.featuremanager.FeatureManager;
-import com.terraforged.mod.featuremanager.data.DataManager;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.GatherDataEvent;
-
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class FeatureGenerator {
 
-    @SubscribeEvent
-    public static void gather(GatherDataEvent event) {
-        FeatureInjectorProvider provider = new FeatureInjectorProvider(event.getGenerator(), "terraforged");
-
-        try (DataManager dataManager = SetupFactory.createDataManager()) {
-            FeatureManager.initData(dataManager);
-            Ores.addInjectors(provider);
-            Sediments.addInjectors(provider);
-            Shrubs.addInjectors(provider);
-            Trees.addInjectors(provider);
-        }
-
-        event.getGenerator().addProvider(provider);
-    }
+//    @SubscribeEvent
+//    public static void gather(GatherDataEvent event) {
+//        FeatureInjectorProvider provider = new FeatureInjectorProvider(event.getGenerator(), "terraforged");
+//
+//        try (DataManager dataManager = SetupFactory.createDataManager()) {
+//            FeatureManager.initData(dataManager);
+//            Ores.addInjectors(provider);
+//            Sediments.addInjectors(provider);
+//            Shrubs.addInjectors(provider);
+//            Trees.addInjectors(provider);
+//        }
+//
+//        event.getGenerator().install(provider);
+//    }
 }

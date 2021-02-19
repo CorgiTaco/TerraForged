@@ -3,12 +3,16 @@
   "minVersion": "0.8",
   "compatibilityLevel": "JAVA_8",
   "package": "com.terraforged.mod.mixin",
-  "refmap": "mixin.terraforged.refmap.json",
   "mixins": [
+    "MixinInternalBiomeData",
+    "access.BiomeWeatherAccess",
+    "access.EntryListWidgetAccess",
+    "access.GeneratorTypeAccess",
+    "access.MoreOptionsDialogAccess",
+    "access.ThreadExecutorAccess",
+    "client.MixinAbstractButtonWidget",
     "common.MixinDimensionGeneratorSettings",
-    "common.MixinMinecraftServer"
-  ],
-  "_disabled": [
-    "benchmark.MixinNoiseChunkGenerator"
+    "common.MixinMinecraftServer",
+    "common.MixinResourcePackManager"
   ]
 }

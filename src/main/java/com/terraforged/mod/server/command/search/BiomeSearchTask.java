@@ -28,7 +28,7 @@ import com.terraforged.engine.cell.Cell;
 import com.terraforged.mod.biome.provider.TFBiomeProvider;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public class BiomeSearchTask extends ChunkGeneratorSearch {
 

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "byg",
+  "version": "${version}",
+  "name": "BYG",
+  "description": "An Adventure and Exploration mod with over 80 new biomes!\nTranslator Credits: Dimiral(Russian), Godzmoline(Simplified Chinese)",
+  "authors": [
+    "Corgi Taco",
+    "AOCAWOL"
+  ],
+  "contact": {
+    "homepage": "https://bygmc.weebly.com/",
+    "sources": "https://github.com/CorgiTaco/BYG",
+    "issues": "https://github.com/CorgiTaco/BYG/issues"
+  },
+  "license": "Code: LGPLv3\n Assets: All Rights Reserved",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "com.terraforged.mod.TerraForgedMod"
+    ]
+  },
+  "mixins": [
+    "mixin.terraforged.json"
+  ],
+  "depends": {
+    "fabricloader": "*",
+    "fabric": "*",
+    "minecraft": ">=1.16.3"
+  },
+  "suggests": {
+    "flamingo": "*"
+  },
+  "accessWidener": "terraforged.aw"
+}

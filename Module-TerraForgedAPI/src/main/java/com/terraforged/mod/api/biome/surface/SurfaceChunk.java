@@ -29,8 +29,7 @@ import com.terraforged.mod.api.material.state.States;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.IChunk;
-
+import net.minecraft.world.chunk.Chunk;
 import javax.annotation.Nullable;
 
 public class SurfaceChunk extends ChunkDelegate {
@@ -38,7 +37,7 @@ public class SurfaceChunk extends ChunkDelegate {
     private int surfaceTop;
     private int surfaceBottom;
 
-    public SurfaceChunk(IChunk chunk) {
+    public SurfaceChunk(Chunk chunk) {
         super(chunk);
     }
 
@@ -48,7 +47,7 @@ public class SurfaceChunk extends ChunkDelegate {
         if (state.getBlock() == Blocks.WATER) {
             return state;
         }
-        if (state.isSolid()) {
+        if (state.isOpaque()) {
             return States.STONE.get();
         }
         return Blocks.AIR.getDefaultState();

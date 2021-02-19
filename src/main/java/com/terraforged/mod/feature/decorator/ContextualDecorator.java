@@ -28,21 +28,21 @@ import com.mojang.serialization.Codec;
 import com.terraforged.mod.api.feature.decorator.DecorationContext;
 import com.terraforged.mod.feature.DecorationAccessor;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.feature.WorldDecoratingHelper;
-import net.minecraft.world.gen.placement.IPlacementConfig;
-import net.minecraft.world.gen.placement.Placement;
+import net.minecraft.world.gen.decorator.Decorator;
+import net.minecraft.world.gen.decorator.DecoratorConfig;
+import net.minecraft.world.gen.decorator.DecoratorContext;
 
 import java.util.Random;
 import java.util.stream.Stream;
 
-public abstract class ContextualDecorator<T extends IPlacementConfig> extends Placement<T> {
+public abstract class ContextualDecorator<T extends DecoratorConfig> extends Decorator<T> {
     
     public ContextualDecorator(Codec<T> codec) {
         super(codec);
     }
 
     @Override
-    public Stream<BlockPos> getPositions(WorldDecoratingHelper helper, Random random, T config, BlockPos pos) {
+    public Stream<BlockPos> getPositions(DecoratorContext helper, Random random, T config, BlockPos pos) {
         DecorationContext context = DecorationAccessor.getContext(helper);
         if (context == null) {
             new UnsupportedOperationException().printStackTrace();
@@ -51,5 +51,5 @@ public abstract class ContextualDecorator<T extends IPlacementConfig> extends Pl
         return getPositions(helper, context, random, config, pos);
     }
     
-    protected abstract Stream<BlockPos> getPositions(WorldDecoratingHelper helper, DecorationContext context, Random random, T config, BlockPos pos);
+    protected abstract Stream<BlockPos> getPositions(DecoratorContext helper, DecorationContext context, Random random, T config, BlockPos pos);
 }

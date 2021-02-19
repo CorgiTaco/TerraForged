@@ -30,12 +30,13 @@ import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.biome.provider.analyser.BiomeAnalyser;
 import com.terraforged.mod.chunk.settings.StructureSettings;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
-import net.minecraft.util.registry.WorldGenRegistries;
+import net.minecraft.util.registry.BuiltinRegistries;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.DimensionSettings;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.settings.DimensionStructuresSettings;
-import net.minecraft.world.gen.settings.StructureSeparationSettings;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
+import net.minecraft.world.gen.chunk.StructureConfig;
+import net.minecraft.world.gen.chunk.StructuresConfig;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -44,8 +45,8 @@ import java.util.Objects;
 public class StructureUtils {
 
     public static JsonObject addMissingStructures(JsonObject dest) {
-        DimensionSettings settings = WorldGenRegistries.NOISE_SETTINGS.getOrThrow(DimensionSettings.field_242734_c);
-        JsonElement element = Codecs.encode(DimensionStructuresSettings.field_236190_a_, settings.getStructures());
+        ChunkGeneratorSettings settings = BuiltinRegistries.CHUNK_GENERATOR_SETTINGS.getOrThrow(ChunkGeneratorSettings.OVERWORLD);
+        JsonElement element = Codecs.encode(StructuresConfig.CODEC, settings.getStructuresConfig());
         if (element.isJsonObject()) {
             JsonObject defaults = element.getAsJsonObject();
             for (Map.Entry<String, JsonElement> entry : defaults.entrySet()) {
@@ -60,42 +61,42 @@ public class StructureUtils {
     public static Map<String, StructureSettings.StructureSeparation> getOverworldStructureDefaults() {
         Map<String, StructureSettings.StructureSeparation> map = new LinkedHashMap<>();
 
-        DimensionSettings dimensionSettings = WorldGenRegistries.NOISE_SETTINGS.getOrThrow(DimensionSettings.field_242734_c);
-        DimensionStructuresSettings structuresSettings = dimensionSettings.getStructures();
+        ChunkGeneratorSettings dimensionSettings = BuiltinRegistries.CHUNK_GENERATOR_SETTINGS.getOrThrow(ChunkGeneratorSettings.OVERWORLD);
+        StructuresConfig structuresSettings = dimensionSettings.getStructuresConfig();
 
-        for (Map.Entry<Structure<?>, StructureSeparationSettings> entry : structuresSettings.func_236195_a_().entrySet()) {
-            if (entry.getKey().getRegistryName() == null) {
+        for (Map.Entry<StructureFeature<?>, StructureConfig> entry : structuresSettings.getStructures().entrySet()) {
+            if (Registry.STRUCTURE_FEATURE.getId(entry.getKey()) == null) {
                 continue;
             }
 
             StructureSettings.StructureSeparation separation = new StructureSettings.StructureSeparation();
-            separation.salt = entry.getValue().func_236673_c_();
-            separation.spacing = entry.getValue().func_236668_a_();
-            separation.separation = entry.getValue().func_236671_b_();
+            separation.salt = entry.getValue().getSalt();
+            separation.spacing = entry.getValue().getSpacing();
+            separation.separation = entry.getValue().getSeparation();
 
-            map.put(Objects.toString(entry.getKey().getRegistryName()), separation);
+            map.put(Objects.toString(Registry.STRUCTURE_FEATURE.getId(entry.getKey())), separation);
         }
 
         return map;
     }
 
-    public static void retainOverworldStructures(Map<String, ?> map, DimensionStructuresSettings settings, TFBiomeContext context) {
+    public static void retainOverworldStructures(Map<String, ?> map, StructuresConfig settings, TFBiomeContext context) {
         Biome[] overworldBiomes = BiomeAnalyser.getOverworldBiomes(context);
-        for (Structure<?> structure : settings.func_236195_a_().keySet()) {
-            if (structure.getRegistryName() == null) {
+        for (StructureFeature<?> structure : settings.getStructures().keySet()) {
+            if (Registry.STRUCTURE_FEATURE.getId(structure) == null) {
                 continue;
             }
 
             // Remove if stronghold (has its own settings) or isn't an overworld structure
-            if (structure == Structure.STRONGHOLD || !hasStructure(structure, overworldBiomes)) {
-                map.remove(structure.getRegistryName().toString());
+            if (structure == StructureFeature.STRONGHOLD || !hasStructure(structure, overworldBiomes)) {
+                map.remove(Registry.STRUCTURE_FEATURE.getId(structure).toString());
             }
         }
     }
 
-    public static boolean hasStructure(Structure<?> structure, Biome[] biomes) {
+    public static boolean hasStructure(StructureFeature<?> structure, Biome[] biomes) {
         for (Biome biome : biomes) {
-            if (biome.getGenerationSettings().hasStructure(structure)) {
+            if (biome.getGenerationSettings().hasStructureFeature(structure)) {
                 return true;
             }
         }

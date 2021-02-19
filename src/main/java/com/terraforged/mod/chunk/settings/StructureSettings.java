@@ -34,8 +34,8 @@ import com.terraforged.mod.feature.structure.StructureUtils;
 import com.terraforged.mod.feature.structure.StructureValidator;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
 import com.terraforged.mod.util.DataUtils;
-import net.minecraft.world.gen.DimensionSettings;
-import net.minecraft.world.gen.settings.DimensionStructuresSettings;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
+import net.minecraft.world.gen.chunk.StructuresConfig;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -61,11 +61,11 @@ public class StructureSettings {
         return structures;
     }
 
-    public void load(DimensionStructuresSettings settings, TFBiomeContext context) {
+    public void load(StructuresConfig settings, TFBiomeContext context) {
         // Copy valid structure configs to a new instance
         StructureSettings defaults = new StructureSettings();
 
-        JsonElement json = Codecs.encodeAndGet(DimensionStructuresSettings.field_236190_a_, settings, JsonOps.INSTANCE);
+        JsonElement json = Codecs.encodeAndGet(StructuresConfig.CODEC, settings, JsonOps.INSTANCE);
         json = StructureUtils.addMissingStructures(json.getAsJsonObject());
 
         DataUtils.fromJson(json, defaults);
@@ -80,14 +80,14 @@ public class StructureSettings {
         this.structures = defaults.structures;
     }
 
-    public DimensionStructuresSettings validateAndApply(TerraContext context, Supplier<DimensionSettings> settings) {
-        DimensionSettings dimensionSettings = settings.get();
+    public StructuresConfig validateAndApply(TerraContext context, Supplier<ChunkGeneratorSettings> settings) {
+        ChunkGeneratorSettings dimensionSettings = settings.get();
         StructureValidator.validateConfigs(dimensionSettings, context.biomeContext, this);
-        return apply(dimensionSettings.getStructures());
+        return apply(dimensionSettings.getStructuresConfig());
     }
 
-    public DimensionStructuresSettings apply(DimensionStructuresSettings original) {
-        return Codecs.modify(original, DimensionStructuresSettings.field_236190_a_, root -> {
+    public StructuresConfig apply(StructuresConfig original) {
+        return Codecs.modify(original, StructuresConfig.CODEC, root -> {
             root = StructureUtils.addMissingStructures(root.getAsJsonObject());
 
             if (isDefault()) {

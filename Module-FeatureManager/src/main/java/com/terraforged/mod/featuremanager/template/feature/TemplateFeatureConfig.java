@@ -39,14 +39,13 @@ import com.terraforged.mod.featuremanager.template.type.FeatureTypes;
 import com.terraforged.mod.featuremanager.util.Json;
 import com.terraforged.mod.featuremanager.util.codec.CodecException;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.gen.feature.FeatureConfig;
 
-public class TemplateFeatureConfig implements IFeatureConfig {
+public class TemplateFeatureConfig implements FeatureConfig {
 
     public static final TemplateFeatureConfig NONE = new TemplateFeatureConfig();
     public static final Codec<TemplateFeatureConfig> CODEC = Codecs.create(
@@ -54,21 +53,21 @@ public class TemplateFeatureConfig implements IFeatureConfig {
             TemplateFeatureConfig::deserialize
     );
 
-    public final ResourceLocation name;
+    public final Identifier name;
     public final FeatureType type;
     public final PasteConfig paste;
     public final List<Template> templates;
     public final DecoratorConfig<?> decorator;
 
     private TemplateFeatureConfig() {
-        name = new ResourceLocation("fm", "none");
+        name = new Identifier("fm", "none");
         type = FeatureTypes.ANY;
         paste = PasteConfig.DEFAULT;
         templates = Collections.emptyList();
         decorator = null;
     }
 
-    public TemplateFeatureConfig(ResourceLocation name, FeatureType type, PasteConfig paste, List<Template> templates, DecoratorConfig<?> decorator) {
+    public TemplateFeatureConfig(Identifier name, FeatureType type, PasteConfig paste, List<Template> templates, DecoratorConfig<?> decorator) {
         this.name = name;
         this.type = type;
         this.paste = paste;
@@ -84,8 +83,8 @@ public class TemplateFeatureConfig implements IFeatureConfig {
     }
 
     public static <T> TemplateFeatureConfig deserialize(Dynamic<T> dynamic) {
-        ResourceLocation name = Codecs.getResult(dynamic.get("template").asString())
-                .map(ResourceLocation::tryCreate)
+        Identifier name = Codecs.getResult(dynamic.get("template").asString())
+                .map(Identifier::tryParse)
                 .orElseThrow(CodecException.get("Failed to load template entry"));
 
         TemplateFeatureConfig config = TemplateManager.getInstance().getTemplateConfig(name);
@@ -98,7 +97,7 @@ public class TemplateFeatureConfig implements IFeatureConfig {
 
     public static TemplateFeatureConfig parse(TemplateLoader loader, JsonObject root) throws IOException {
         try {
-            ResourceLocation name = new ResourceLocation(Json.getString("name", root));
+            Identifier name = new Identifier(Json.getString("name", root));
             FeatureType type = FeatureTypes.getType(Json.getString("type", root));
             PasteConfig paste = PasteConfig.parse(root.getAsJsonObject("config"));
             DecoratorConfig<?> decorator = DecoratorConfig.parse(type.getDecorator(), root.getAsJsonObject("decorators"));

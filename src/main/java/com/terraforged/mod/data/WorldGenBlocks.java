@@ -28,7 +28,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.terraforged.mod.api.material.WGTags;
 import net.minecraft.block.Block;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 import java.io.File;
 import java.util.Collection;
@@ -37,23 +38,23 @@ public class WorldGenBlocks extends DataGen {
 
     public static void genBlockTags(File dataDir) {
         if (dataDir.exists() || dataDir.mkdirs()) {
-            printMaterials(dataDir, "forge:wg_stone", WGTags.STONE.getAllElements());
-            printMaterials(dataDir, "forge:wg_dirt", WGTags.DIRT.getAllElements());
-            printMaterials(dataDir, "forge:wg_clay", WGTags.CLAY.getAllElements());
-            printMaterials(dataDir, "forge:wg_sediment", WGTags.SEDIMENT.getAllElements());
-            printMaterials(dataDir, "forge:wg_erodible", WGTags.ERODIBLE.getAllElements());
+            printMaterials(dataDir, "forge:wg_stone", WGTags.STONE.values());
+            printMaterials(dataDir, "forge:wg_dirt", WGTags.DIRT.values());
+            printMaterials(dataDir, "forge:wg_clay", WGTags.CLAY.values());
+            printMaterials(dataDir, "forge:wg_sediment", WGTags.SEDIMENT.values());
+            printMaterials(dataDir, "forge:wg_erodible", WGTags.ERODIBLE.values());
         }
     }
 
     private static void printMaterials(File dir, String name, Collection<Block> blocks) {
-        String path = getJsonPath("tags/blocks", new ResourceLocation(name));
+        String path = getJsonPath("tags/blocks", new Identifier(name));
         write(new File(dir, path), writer -> {
             JsonObject root = new JsonObject();
             JsonArray values = new JsonArray();
             root.addProperty("replace", false);
             root.add("values", values);
             for (Block block : blocks) {
-                values.add(String.valueOf(block.getRegistryName()));
+                values.add(String.valueOf(Registry.BLOCK.getId(block)));
             }
             write(root, writer);
         });

@@ -30,12 +30,12 @@ import com.terraforged.mod.api.event.SetupEvent;
 import com.terraforged.mod.featuremanager.matcher.BiomeFeatureMatcher;
 import com.terraforged.mod.featuremanager.transformer.FeatureAppender;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+//import net.minecraftforge.event.RegistryEvent;
+//import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
@@ -47,11 +47,11 @@ public class CrashTestFeature extends Feature<CrashTestConfig> {
 
     private CrashTestFeature() {
         super(CrashTestConfig.CODEC);
-        setRegistryName(TerraForgedMod.MODID, "crashy_mccrashface");
+//        setRegistryName(TerraForgedMod.MODID, "crashy_mccrashface");
     }
 
     @Override
-    public boolean generate(ISeedReader region, ChunkGenerator generator, Random rand, BlockPos pos, CrashTestConfig config) {
+    public boolean generate(StructureWorldAccess region, ChunkGenerator generator, Random rand, BlockPos pos, CrashTestConfig config) {
         if (ThreadLocalRandom.current().nextInt(100) < CRASH_CHANCE_PERCENTAGE) {
             switch (config.crashType) {
                 case DEADLOCK:
@@ -81,38 +81,38 @@ public class CrashTestFeature extends Feature<CrashTestConfig> {
         }
     }
 
-    private void serverDeadlock(ISeedReader region, BlockPos pos) {
+    private void serverDeadlock(StructureWorldAccess region, BlockPos pos) {
         // Simulate a third-party mod requesting chunks via the ServerWorld rather than the
         // WorldGenRegion. This may be an indirect offense such as spawning an Entity but
         // then using unsafe methods on the Entity (ie setLocationAndRotation)
         int x = 50 + pos.getX() >> 4;
         int z = 124 + pos.getZ() >> 4;
-        region.getWorld().getChunk(x, z);
+        region.toServerWorld().getChunk(x, z);
     }
 
 //    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-    public static class Init {
-        @SubscribeEvent
-        public static void registerFeatures(RegistryEvent.Register<Feature<?>> event) {
-            Log.info("Registering crash-test feature");
-            event.getRegistry().register(CrashTestFeature.INSTANCE);
-        }
-    }
-
-//    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
-    public static class Setup {
-        @SubscribeEvent
-        public static void setup(SetupEvent.Features event) {
-            Log.info("Adding crash-test");
-            event.getManager().getAppenders().add(BiomeFeatureMatcher.ANY, FeatureAppender.head(
-                    GenerationStage.Decoration.VEGETAL_DECORATION,
-                    CrashTestFeature.INSTANCE.withConfiguration(new CrashTestConfig(CrashTestConfig.CrashType.SLOW))
-            ));
-
-            event.getManager().getAppenders().add(BiomeFeatureMatcher.ANY, FeatureAppender.tail(
-                    GenerationStage.Decoration.VEGETAL_DECORATION,
-                    CrashTestFeature.INSTANCE.withConfiguration(new CrashTestConfig(CrashTestConfig.CrashType.DEADLOCK))
-            ));
-        }
-    }
+//    public static class Init {
+//        @SubscribeEvent
+//        public static void registerFeatures(RegistryEvent.Register<Feature<?>> event) {
+//            Log.info("Registering crash-test feature");
+//            event.getRegistry().register(CrashTestFeature.INSTANCE);
+//        }
+//    }
+//
+////    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
+//    public static class Setup {
+//        @SubscribeEvent
+//        public static void setup(SetupEvent.Features event) {
+//            Log.info("Adding crash-test");
+//            event.getManager().getAppenders().add(BiomeFeatureMatcher.ANY, FeatureAppender.head(
+//                    GenerationStep.Feature.VEGETAL_DECORATION,
+//                    CrashTestFeature.INSTANCE.configure(new CrashTestConfig(CrashTestConfig.CrashType.SLOW))
+//            ));
+//
+//            event.getManager().getAppenders().add(BiomeFeatureMatcher.ANY, FeatureAppender.tail(
+//                    GenerationStep.Feature.VEGETAL_DECORATION,
+//                    CrashTestFeature.INSTANCE.configure(new CrashTestConfig(CrashTestConfig.CrashType.DEADLOCK))
+//            ));
+//        }
+//    }
 }

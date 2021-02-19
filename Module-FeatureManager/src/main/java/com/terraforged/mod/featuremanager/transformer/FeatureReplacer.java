@@ -26,7 +26,7 @@ package com.terraforged.mod.featuremanager.transformer;
 
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
+import net.minecraft.world.gen.feature.FeatureConfig;
 
 public class FeatureReplacer extends AbstractFeatureInjector {
 
@@ -43,7 +43,7 @@ public class FeatureReplacer extends AbstractFeatureInjector {
         return new FeatureReplacer(feature);
     }
 
-    public static <T extends IFeatureConfig> FeatureReplacer of(Feature<T> feature, T config) {
-        return of(feature.withConfiguration(config));
+    public static <T extends FeatureConfig> FeatureReplacer of(Feature<T> feature, T config) {
+        return of(feature.configure(config));
     }
 }

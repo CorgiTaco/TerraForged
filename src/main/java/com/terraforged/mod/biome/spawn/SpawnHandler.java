@@ -26,58 +26,52 @@ package com.terraforged.mod.biome.spawn;
 
 import com.terraforged.engine.util.pos.PosUtil;
 import com.terraforged.engine.world.continent.SpawnType;
-import com.terraforged.mod.Log;
 import com.terraforged.mod.biome.provider.TFBiomeProvider;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.storage.ServerWorldInfo;
-import net.minecraftforge.event.world.WorldEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.gen.feature.FeatureConfig;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class SpawnHandler {
 
-    @SubscribeEvent
-    public static void createSpawn(WorldEvent.CreateSpawnPosition event) {
-        if (event.getWorld() instanceof ServerWorld) {
-            ServerWorld world =(ServerWorld) event.getWorld();
-            ChunkGenerator generator = world.getChunkProvider().getChunkGenerator();
-            if (generator.getBiomeProvider() instanceof TFBiomeProvider) {
-                Log.info("Searching for world spawn position");
-                TFBiomeProvider provider = (TFBiomeProvider) generator.getBiomeProvider();
-                BlockPos center = getSearchCenter(provider);
-                SpawnSearch search = new SpawnSearch(center, provider);
-
-                // SpawnSearch uses a rough look-up that does not account for the effects of erosion which
-                // can add or remove from the heightmap depending on location. Use the chunk generator's
-                // surface lookup function to obtain the actual height
-                BlockPos spawn = getSurface(generator, search.get());
-
-                Log.info("Setting world spawn: {}", spawn);
-                event.setCanceled(true);
-                ServerWorldInfo info = (ServerWorldInfo) event.getSettings();
-                info.setSpawnX(spawn.getX());
-                info.setSpawnY(spawn.getY());
-                info.setSpawnZ(spawn.getZ());
-
-                if (info.getDimensionGeneratorSettings().hasBonusChest()) {
-                    Log.info("Generating bonus chest");
-                    createBonusChest(world, spawn);
-                }
-            }
-        }
-    }
+//    @SubscribeEvent
+//    public static void createSpawn(WorldEvent.CreateSpawnPosition event) {
+//        if (event.getWorld() instanceof ServerWorld) {
+//            ServerWorld world =(ServerWorld) event.getWorld();
+//            ChunkGenerator generator = world.getChunkManager().getChunkGenerator();
+//            if (generator.getBiomeSource() instanceof TFBiomeProvider) {
+//                Log.info("Searching for world spawn position");
+//                TFBiomeProvider provider = (TFBiomeProvider) generator.getBiomeSource();
+//                BlockPos center = getSearchCenter(provider);
+//                SpawnSearch search = new SpawnSearch(center, provider);
+//
+//                // SpawnSearch uses a rough look-up that does not account for the effects of erosion which
+//                // can add or remove from the heightmap depending on location. Use the chunk generator's
+//                // surface lookup function to obtain the actual height
+//                BlockPos spawn = getSurface(generator, search.get());
+//
+//                Log.info("Setting world spawn: {}", spawn);
+//                event.setCanceled(true);
+//                LevelProperties info = (LevelProperties) event.getSettings();
+//                info.setSpawnX(spawn.getX());
+//                info.setSpawnY(spawn.getY());
+//                info.setSpawnZ(spawn.getZ());
+//
+//                if (info.getGeneratorOptions().hasBonusChest()) {
+//                    Log.info("Generating bonus chest");
+//                    createBonusChest(world, spawn);
+//                }
+//            }
+//        }
+//    }
 
     private static BlockPos getSearchCenter(TFBiomeProvider provider) {
         SpawnType spawnType = provider.getContext().terraSettings.world.properties.spawnType;
         if (spawnType == SpawnType.WORLD_ORIGIN) {
-            return BlockPos.ZERO;
+            return BlockPos.ORIGIN;
         } else {
             long center = provider.getContext().heightmap.get().getContinent().getNearestCenter(0, 0);
             int x = PosUtil.unpackLeft(center);
@@ -92,7 +86,7 @@ public class SpawnHandler {
     }
 
     private static void createBonusChest(ServerWorld world, BlockPos pos) {
-        ConfiguredFeature<?, ?> chest = Feature.BONUS_CHEST.withConfiguration(IFeatureConfig.NO_FEATURE_CONFIG);
-        chest.generate(world, world.getChunkProvider().getChunkGenerator(), world.rand, pos);
+        ConfiguredFeature<?, ?> chest = Feature.BONUS_CHEST.configure(FeatureConfig.DEFAULT);
+        chest.generate(world, world.getChunkManager().getChunkGenerator(), world.random, pos);
     }
 }

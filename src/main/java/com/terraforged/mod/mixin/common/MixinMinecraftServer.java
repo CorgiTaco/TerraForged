@@ -25,9 +25,9 @@
 package com.terraforged.mod.mixin.common;
 
 import com.terraforged.mod.server.ServerEvents;
-import net.minecraft.resources.ResourcePackList;
+import net.minecraft.resource.DataPackSettings;
+import net.minecraft.resource.ResourcePackManager;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.datafix.codec.DatapackCodec;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -41,8 +41,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(MinecraftServer.class)
 public class MixinMinecraftServer {
 
-    @Inject(method = "func_240772_a_", at = @At("HEAD"))
-    private static void onBuildDataPacks(ResourcePackList packList, DatapackCodec codec, boolean vanillaOnly, CallbackInfoReturnable<DatapackCodec> cir) {
+    @Inject(method = "loadDataPacks", at = @At("HEAD"))
+    private static void onBuildDataPacks(ResourcePackManager packList, DataPackSettings codec, boolean vanillaOnly, CallbackInfoReturnable<DataPackSettings> cir) {
         ServerEvents.addPackFinder(packList);
     }
 }

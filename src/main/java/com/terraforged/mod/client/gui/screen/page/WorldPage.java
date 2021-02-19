@@ -29,24 +29,25 @@ import com.terraforged.mod.client.gui.element.TFTextBox;
 import com.terraforged.mod.client.gui.page.BasePage;
 import com.terraforged.mod.client.gui.screen.Instance;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayScreen;
+import com.terraforged.mod.mixin.access.GeneratorTypeAccess;
 import com.terraforged.mod.util.DataUtils;
 import com.terraforged.mod.util.DimUtils;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.common.world.ForgeWorldType;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.world.GeneratorType;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 public class WorldPage extends BasePage {
 
     private final UpdatablePage preview;
     private final Instance instance;
 
-    private CompoundNBT worldSettings = null;
-    private CompoundNBT dimSettings = null;
+    private CompoundTag worldSettings = null;
+    private CompoundTag dimSettings = null;
 
     public WorldPage(Instance instance, UpdatablePage preview) {
         this.instance = instance;
@@ -76,10 +77,10 @@ public class WorldPage extends BasePage {
     }
 
     @Override
-    public void onAddWidget(Widget widget) {
+    public void onAddWidget(AbstractButtonWidget widget) {
         if (widget instanceof TFTextBox) {
             TFTextBox input = (TFTextBox) widget;
-            input.setColorValidator(string -> ForgeRegistries.BLOCKS.containsKey(new ResourceLocation(string)));
+            input.setColorValidator(string -> Registry.BLOCK.containsId(new Identifier(string)));
         }
     }
 
@@ -91,18 +92,18 @@ public class WorldPage extends BasePage {
         });
     }
 
-    private CompoundNBT getWorldSettings() {
+    private CompoundTag getWorldSettings() {
         return instance.settingsData.getCompound("world");
     }
 
-    private CompoundNBT getDimSettings() {
-        CompoundNBT dimSettings = instance.settingsData.getCompound("dimensions");
-        CompoundNBT generators = dimSettings.getCompound("dimensions");
-        for (String name : generators.keySet()) {
+    private CompoundTag getDimSettings() {
+        CompoundTag dimSettings = instance.settingsData.getCompound("dimensions");
+        CompoundTag generators = dimSettings.getCompound("dimensions");
+        for (String name : generators.getKeys()) {
             if (name.startsWith("#")) {
-                INBT value = generators.get(name.substring(1));
-                if (value instanceof StringNBT) {
-                    CompoundNBT metadata = generators.getCompound(name);
+                Tag value = generators.get(name.substring(1));
+                if (value instanceof StringTag) {
+                    CompoundTag metadata = generators.getCompound(name);
                     metadata.put("options", getWorldTypes());
                 }
             }
@@ -110,11 +111,11 @@ public class WorldPage extends BasePage {
         return dimSettings;
     }
 
-    private static ListNBT getWorldTypes() {
-        ListNBT options = new ListNBT();
-        for (ForgeWorldType type : ForgeRegistries.WORLD_TYPES) {
+    private static ListTag getWorldTypes() {
+        ListTag options = new ListTag();
+        for (GeneratorType type : GeneratorTypeAccess.getVALUES()) {
             String name = DimUtils.getDisplayString(type);
-            INBT value = StringNBT.valueOf(name);
+            Tag value = StringTag.of(name);
             options.add(value);
         }
         return options;

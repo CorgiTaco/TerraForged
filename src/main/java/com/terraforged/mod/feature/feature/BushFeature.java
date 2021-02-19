@@ -34,15 +34,17 @@ import com.terraforged.mod.featuremanager.util.codec.CodecHelper;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.LeavesBlock;
-import net.minecraft.util.Direction;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.IFeatureConfig;
+import net.minecraft.world.gen.feature.FeatureConfig;
 
 import java.util.Random;
 
@@ -50,41 +52,41 @@ public class BushFeature extends Feature<BushFeature.Config> {
 
     public static final BushFeature INSTANCE = new BushFeature();
 
-    private static final Vector3i[] logs = {
-            new Vector3i(+1, 0, +1),
-            new Vector3i(+1, 0, -1),
-            new Vector3i(-1, 0, -1),
-            new Vector3i(-1, 0, +1),
+    private static final Vec3i[] logs = {
+            new Vec3i(+1, 0, +1),
+            new Vec3i(+1, 0, -1),
+            new Vec3i(-1, 0, -1),
+            new Vec3i(-1, 0, +1),
 
-            new Vector3i(+2, 0, +1),
-            new Vector3i(+2, 0, -1),
-            new Vector3i(-2, 0, +1),
-            new Vector3i(-2, 0, -1),
+            new Vec3i(+2, 0, +1),
+            new Vec3i(+2, 0, -1),
+            new Vec3i(-2, 0, +1),
+            new Vec3i(-2, 0, -1),
 
-            new Vector3i(+1, 0, +2),
-            new Vector3i(+1, 0, -2),
-            new Vector3i(-1, 0, +2),
-            new Vector3i(-1, 0, -2),
+            new Vec3i(+1, 0, +2),
+            new Vec3i(+1, 0, -2),
+            new Vec3i(-1, 0, +2),
+            new Vec3i(-1, 0, -2),
     };
 
-    private static final Vector3i[] leaves = {
-            new Vector3i(0, 0, 1),
-            new Vector3i(0, 0, -1),
-            new Vector3i(1, 0, 0),
-            new Vector3i(-1, 0, 0),
-            new Vector3i(0, 1, 0),
+    private static final Vec3i[] leaves = {
+            new Vec3i(0, 0, 1),
+            new Vec3i(0, 0, -1),
+            new Vec3i(1, 0, 0),
+            new Vec3i(-1, 0, 0),
+            new Vec3i(0, 1, 0),
     };
 
     public BushFeature() {
         super(Config.CODEC);
-        setRegistryName(TerraForgedMod.MODID, "bush");
+        Registry.register(Registry.FEATURE, new Identifier(TerraForgedMod.MODID, "bush"), this);
     }
 
     @Override
-    public boolean generate(ISeedReader world, ChunkGenerator generator, Random rand, BlockPos pos, Config config) {
+    public boolean generate(StructureWorldAccess world, ChunkGenerator generator, Random rand, BlockPos pos, Config config) {
         BlockPos.Mutable log = new BlockPos.Mutable();
         BlockPos.Mutable leaf = new BlockPos.Mutable();
-        place(world, log.setPos(pos), leaf, rand, config);
+        place(world, log.set(pos), leaf, rand, config);
         for (float chance = rand.nextFloat(); chance < config.size_chance; chance += rand.nextFloat()) {
             addToMutable(log, logs[rand.nextInt(logs.length)]);
 
@@ -95,8 +97,8 @@ public class BushFeature extends Feature<BushFeature.Config> {
         return false;
     }
 
-    private boolean place(IWorld world, BlockPos.Mutable center, BlockPos.Mutable pos, Random random, Config config) {
-        center.setY(world.getHeight(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, center.getX(), center.getZ()));
+    private boolean place(WorldAccess world, BlockPos.Mutable center, BlockPos.Mutable pos, Random random, Config config) {
+        center.setY(world.getTopY(Heightmap.Type.MOTION_BLOCKING_NO_LEAVES, center.getX(), center.getZ()));
 
         // don't replace solid blocks
         if (!BlockUtils.canTreeReplace(world, center)) {
@@ -114,13 +116,13 @@ public class BushFeature extends Feature<BushFeature.Config> {
 
         BlockState leaves = config.leavesWithDistance(1);
         BlockState leavesExtra = config.leavesWithDistance(2);
-        for (Vector3i neighbour : BushFeature.leaves) {
+        for (Vec3i neighbour : BushFeature.leaves) {
             // randomly skip NESW neighbours
             if (neighbour.getY() == 0 && random.nextFloat() < config.airChance) {
                 continue;
             }
 
-            pos.setPos(center);
+            pos.set(center);
             addToMutable(pos, neighbour);
 
             if (BlockUtils.canTreeReplace(world, pos)) {
@@ -148,8 +150,8 @@ public class BushFeature extends Feature<BushFeature.Config> {
         return true;
     }
 
-    private static void addToMutable(BlockPos.Mutable pos, Vector3i add) {
-        pos.setPos(pos.getX() + add.getX(), pos.getY() + add.getY(), pos.getZ() + add.getZ());
+    private static void addToMutable(BlockPos.Mutable pos, Vec3i add) {
+        pos.set(pos.getX() + add.getX(), pos.getY() + add.getY(), pos.getZ() + add.getZ());
     }
 
     public static <T> Dynamic<T> serialize(Config config, DynamicOps<T> ops) {
@@ -174,7 +176,7 @@ public class BushFeature extends Feature<BushFeature.Config> {
         return new Config(logs, leaves, airChance, leafChance, sizeChance);
     }
 
-    public static class Config implements IFeatureConfig {
+    public static class Config implements FeatureConfig {
 
         public static final Codec<Config> CODEC = Codecs.create(
                 BushFeature::serialize,
@@ -196,7 +198,7 @@ public class BushFeature extends Feature<BushFeature.Config> {
         }
 
         public BlockState leavesWithDistance(int distance) {
-            if (leaves.hasProperty(LeavesBlock.DISTANCE)) {
+            if (leaves.contains(LeavesBlock.DISTANCE)) {
                 return leaves.with(LeavesBlock.DISTANCE, distance);
             }
             return leaves;

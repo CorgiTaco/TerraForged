@@ -24,40 +24,40 @@
 
 package com.terraforged.mod.client.gui.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.terraforged.mod.client.gui.IButtonHeight;
 import com.terraforged.mod.client.gui.element.Element;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayRenderer;
 import com.terraforged.mod.client.gui.screen.preview.Preview;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.client.gui.widget.list.AbstractOptionList;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.gui.widget.ElementListWidget;
+import net.minecraft.client.util.math.MatrixStack;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class ScrollPane extends AbstractOptionList<ScrollPane.Entry> implements OverlayRenderer {
+public class ScrollPane extends ElementListWidget<ScrollPane.Entry> implements OverlayRenderer {
 
     private boolean hovered = false;
     private boolean renderSelection = true;
 
     public ScrollPane(int slotHeightIn) {
-        super(Minecraft.getInstance(), 0, 0, 0, 0, slotHeightIn);
+        super(MinecraftClient.getInstance(), 0, 0, 0, 0, slotHeightIn);
         setRenderSelection(false);
     }
 
-    public void addButton(Widget button) {
-        super.addEntry(new Entry(button));
+    public void addButton(AbstractButtonWidget button) {
+        super.addEntry(new com.terraforged.mod.client.gui.screen.ScrollPane.Entry(button));
     }
 
     @Override
     public void renderOverlays(MatrixStack matrixStack, Screen screen, int x, int y) {
-        for (Entry entry : this.getEventListeners()) {
+        for (com.terraforged.mod.client.gui.screen.ScrollPane.Entry entry : this.children()) {
             if (entry.isMouseOver(x, y) && entry.option.isMouseOver(x, y)) {
-                Widget button = entry.option;
+                AbstractButtonWidget button = entry.option;
                 if (button instanceof Element) {
                     Element element = (Element) button;
                     if (!element.getTooltip().isEmpty()) {
@@ -81,13 +81,13 @@ public class ScrollPane extends AbstractOptionList<ScrollPane.Entry> implements 
     }
 
     @Override
-    protected int getScrollbarPosition() {
-        return getRight();
+    protected int getScrollbarPositionX() {
+        return this.right;
     }
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
-        for (Entry entry : getEventListeners()) {
+        for (com.terraforged.mod.client.gui.screen.ScrollPane.Entry entry : children()) {
             if (!entry.isMouseOver(mouseX, mouseY) && entry.option.isFocused()) {
                 entry.option.changeFocus(true);
             }
@@ -102,24 +102,24 @@ public class ScrollPane extends AbstractOptionList<ScrollPane.Entry> implements 
 
     @Override
     protected boolean isSelectedItem(int index) {
-        return renderSelection && Objects.equals(getSelected(), getEventListeners().get(index));
+        return renderSelection && Objects.equals(getSelected(), children().get(index));
     }
 
-    public class Entry extends AbstractOptionList.Entry<Entry> {
+    public class Entry extends ElementListWidget.Entry<com.terraforged.mod.client.gui.screen.ScrollPane.Entry> {
 
-        public final Widget option;
+        public final AbstractButtonWidget option;
 
-        public Entry(Widget option) {
+        public Entry(AbstractButtonWidget option) {
             this.option = option;
         }
 
         @Nullable
-        public IGuiEventListener getFocused() {
+        public net.minecraft.client.gui.Element getFocused() {
             return option;
         }
 
         @Override
-        public List<? extends IGuiEventListener> getEventListeners() {
+        public List<? extends net.minecraft.client.gui.Element> children() {
             return Collections.singletonList(option);
         }
 
@@ -147,9 +147,9 @@ public class ScrollPane extends AbstractOptionList<ScrollPane.Entry> implements 
             option.y = top;
             option.visible = true;
             option.setWidth(optionWidth);
-            option.setHeight(height - 1);
+            ((IButtonHeight) option).setHeight(height - 1);
             if (option instanceof Preview) {
-                option.setHeight(option.getWidth());
+                ((IButtonHeight) option).setHeight(option.getWidth());
             }
             option.render(matrixStack, mouseX, mouseY, partialTicks);
         }

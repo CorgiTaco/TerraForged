@@ -39,9 +39,9 @@ import com.terraforged.mod.chunk.column.BaseGeoDecorator;
 import com.terraforged.mod.chunk.column.BedrockDecorator;
 import com.terraforged.mod.chunk.util.FastChunk;
 import com.terraforged.mod.feature.structure.StructureTerrain;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.feature.structure.StructureManager;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.StructureAccessor;
 
 public class BaseGenerator implements Generator.Terrain {
 
@@ -62,9 +62,9 @@ public class BaseGenerator implements Generator.Terrain {
     }
 
     @Override
-    public final void generateTerrain(IWorld world, IChunk chunk, StructureManager structures) {
+    public final void generateTerrain(WorldAccess world, Chunk chunk, StructureAccessor structures) {
         try (ChunkReader reader = generator.getChunkReader(chunk.getPos().x, chunk.getPos().z)) {
-            TFBiomeContainer container = TFBiomeContainer.getOrCreate(FastChunk.wrap(chunk), reader, generator.getBiomeProvider());
+            TFBiomeContainer container = TFBiomeContainer.getOrCreate(FastChunk.wrap(chunk), reader, generator.getBiomeSource());
             try (DecoratorContext context = new DecoratorContext(chunk, levels, climate.get())) {
                 reader.iterate(context, (cell, dx, dz, ctx) -> {
                     int px = ctx.blockX + dx;

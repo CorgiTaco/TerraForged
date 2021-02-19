@@ -7,7 +7,7 @@ import com.terraforged.mod.chunk.settings.StructureSettings;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.feature.structure.Structure;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -50,15 +50,15 @@ public class StrongholdGenerator implements Generator.Strongholds {
 
         final ChunkPos[] chunks = positions.get();
         for(ChunkPos chunkpos : chunks) {
-            mutable.setPos((chunkpos.x << 4) + 8, 32, (chunkpos.z << 4) + 8);
-            double dist2 = mutable.distanceSq(pos);
+            mutable.set((chunkpos.x << 4) + 8, 32, (chunkpos.z << 4) + 8);
+            double dist2 = mutable.getSquaredDistance(pos);
 
             if (nearest == null) {
                 nearest = new BlockPos.Mutable();
-                nearest.setPos(mutable);
+                nearest.set(mutable);
                 distance2 = dist2;
             } else if (dist2 < distance2) {
-                nearest.setPos(mutable);
+                nearest.set(mutable);
                 distance2 = dist2;
             }
         }
@@ -91,7 +91,7 @@ public class StrongholdGenerator implements Generator.Strongholds {
 
                 int chunkCenterX = (x << 4) + 8;
                 int chunkCenterZ = (z << 4) + 8;
-                BlockPos blockpos = biomeProvider.findBiomePosition(chunkCenterX, 0, chunkCenterZ, 112, biomePredicate, random);
+                BlockPos blockpos = biomeProvider.locateBiome(chunkCenterX, 0, chunkCenterZ, 112, biomePredicate, random);
 
                 if (blockpos != null) {
                     x = blockpos.getX() >> 4;
@@ -119,7 +119,7 @@ public class StrongholdGenerator implements Generator.Strongholds {
     private static Predicate<Biome> getStrongholdBiomes(TFBiomeProvider biomeProvider) {
         Set<Biome> biomes = new HashSet<>();
         for(Biome biome : biomeProvider.getBiomes()) {
-            if (biome.getGenerationSettings().hasStructure(Structure.STRONGHOLD)) {
+            if (biome.getGenerationSettings().hasStructureFeature(StructureFeature.STRONGHOLD)) {
                 biomes.add(biome);
             }
         }

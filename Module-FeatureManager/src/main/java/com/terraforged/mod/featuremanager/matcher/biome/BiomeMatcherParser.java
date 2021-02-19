@@ -27,7 +27,7 @@ package com.terraforged.mod.featuremanager.matcher.biome;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.terraforged.mod.biome.context.TFBiomeContext;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 
 import java.util.Collections;
@@ -87,7 +87,7 @@ public class BiomeMatcherParser {
                 }
             }
         } else {
-            context.biomes.get(new ResourceLocation(biome)).ifPresent(collector);
+            context.biomes.get(new Identifier(biome)).ifPresent(collector);
         }
     }
 

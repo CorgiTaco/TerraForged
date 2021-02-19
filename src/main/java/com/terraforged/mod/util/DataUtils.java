@@ -35,10 +35,10 @@ import com.terraforged.mod.util.nbt.DynamicReader;
 import com.terraforged.mod.util.nbt.DynamicWriter;
 import com.terraforged.mod.util.nbt.NBTReader;
 import com.terraforged.mod.util.nbt.NBTWriter;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.ListNBT;
-import net.minecraft.nbt.NBTDynamicOps;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 
 import java.io.File;
 import java.util.Comparator;
@@ -56,8 +56,8 @@ public class DataUtils {
         }
     }
 
-    public static JsonElement toJson(CompoundNBT tag) {
-        Dynamic<INBT> input = new Dynamic<>(NBTDynamicOps.INSTANCE, tag);
+    public static JsonElement toJson(CompoundTag tag) {
+        Dynamic<Tag> input = new Dynamic<>(NbtOps.INSTANCE, tag);
         Dynamic<JsonElement> output = input.convert(JsonOps.INSTANCE);
         return output.getValue();
     }
@@ -72,10 +72,10 @@ public class DataUtils {
         }
     }
 
-    public static CompoundNBT fromJson(JsonElement json) {
+    public static CompoundTag fromJson(JsonElement json) {
         Dynamic<JsonElement> input = new Dynamic<>(JsonOps.INSTANCE, json);
-        Dynamic<INBT> output = input.convert(NBTDynamicOps.INSTANCE);
-        return (CompoundNBT) output.getValue();
+        Dynamic<Tag> output = input.convert(NbtOps.INSTANCE);
+        return (CompoundTag) output.getValue();
     }
 
     public static boolean fromJson(JsonElement json, Object o) {
@@ -88,40 +88,40 @@ public class DataUtils {
         }
     }
 
-    public static CompoundNBT toNBT(Object object) {
+    public static CompoundTag toNBT(Object object) {
         return toNBT("", object);
     }
 
-    public static CompoundNBT toNBT(String owner, Object object) {
+    public static CompoundTag toNBT(String owner, Object object) {
         try {
             NBTWriter writer = new NBTWriter();
             Serializer.serialize(object, writer, owner, true);
             return writer.compound();
         } catch (IllegalAccessException e) {
-            return new CompoundNBT();
+            return new CompoundTag();
         }
     }
 
-    public static CompoundNBT toCompactNBT(Object object) {
+    public static CompoundTag toCompactNBT(Object object) {
         try {
             NBTWriter writer = new NBTWriter();
             writer.readFrom(object);
             return stripMetadata(writer.compound());
         } catch (IllegalAccessException e) {
-            return new CompoundNBT();
+            return new CompoundTag();
         }
     }
 
-    public static Stream<String> streamKeys(CompoundNBT compound) {
-        return compound.keySet().stream()
+    public static Stream<String> streamKeys(CompoundTag compound) {
+        return compound.getKeys().stream()
                 .filter(name -> !name.startsWith("#"))
                 .sorted(Comparator.comparing(name -> compound.getCompound("#" + name).getInt("order")));
     }
 
-    public static <T extends INBT> T stripMetadata(T tag) {
-        if (tag instanceof CompoundNBT) {
-            CompoundNBT compound = (CompoundNBT) tag;
-            List<String> keys = new LinkedList<>(compound.keySet());
+    public static <T extends Tag> T stripMetadata(T tag) {
+        if (tag instanceof CompoundTag) {
+            CompoundTag compound = (CompoundTag) tag;
+            List<String> keys = new LinkedList<>(compound.getKeys());
             for (String key : keys) {
                 if (key.charAt(0) == '#') {
                     compound.remove(key);
@@ -129,8 +129,8 @@ public class DataUtils {
                     stripMetadata(compound.get(key));
                 }
             }
-        } else if (tag instanceof ListNBT) {
-            ListNBT list = (ListNBT) tag;
+        } else if (tag instanceof ListTag) {
+            ListTag list = (ListTag) tag;
             for (int i = 0; i < list.size(); i++) {
                 stripMetadata(list.get(i));
             }
@@ -138,7 +138,7 @@ public class DataUtils {
         return tag;
     }
 
-    public static boolean fromNBT(CompoundNBT settings, Object object) {
+    public static boolean fromNBT(CompoundTag settings, Object object) {
         try {
             NBTReader reader = new NBTReader(settings);
             return reader.writeTo(object);

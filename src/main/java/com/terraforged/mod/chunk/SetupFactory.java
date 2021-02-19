@@ -48,7 +48,7 @@ import com.terraforged.mod.material.geology.GeoManager;
 import com.terraforged.mod.util.setup.SetupHooks;
 import net.minecraft.block.Blocks;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.world.gen.feature.Feature;
 
 import java.io.File;
@@ -138,27 +138,27 @@ public class SetupFactory {
 
     public static SurfaceManager createSurfaceManager(TerraContext context) {
         SurfaceManager manager = new SurfaceManager(context.biomeContext);
-        manager.replace(Biomes.DEEP_FROZEN_OCEAN, new IcebergsSurface(context, 30, 30));
-        manager.replace(Biomes.FROZEN_OCEAN, new IcebergsSurface(context, 20, 15));
+        manager.replace(BiomeKeys.DEEP_FROZEN_OCEAN, new IcebergsSurface(context, 30, 30));
+        manager.replace(BiomeKeys.FROZEN_OCEAN, new IcebergsSurface(context, 20, 15));
         manager.append(ModBiomes.BRYCE, new BriceSurface(context.seed(BriceSurface.SEED_OFFSET)));
         manager.append(ModBiomes.STONE_FOREST, new StoneForestSurface(context.seed(StoneForestSurface.SEED_OFFSET)));
         manager.append(
                 new DesertSurface(context),
-                Biomes.DESERT,
-                Biomes.DESERT_HILLS,
-                Biomes.DESERT_LAKES
+                BiomeKeys.DESERT,
+                BiomeKeys.DESERT_HILLS,
+                BiomeKeys.DESERT_LAKES
         );
         manager.replace(
                 new SwampSurface(context),
-                Biomes.SWAMP,
+                BiomeKeys.SWAMP,
                 ModBiomes.MARSHLAND
         );
         manager.append(
                 new ForestSurface(context),
-                Biomes.FOREST,
-                Biomes.WOODED_HILLS,
-                Biomes.DARK_FOREST,
-                Biomes.DARK_FOREST_HILLS
+                BiomeKeys.FOREST,
+                BiomeKeys.WOODED_HILLS,
+                BiomeKeys.DARK_FOREST,
+                BiomeKeys.DARK_FOREST_HILLS
         );
         return SetupHooks.setup(manager, context);
     }

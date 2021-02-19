@@ -25,8 +25,8 @@
 package com.terraforged.mod.profiler.crash;
 
 import com.terraforged.mod.chunk.TFChunkGenerator;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.WorldGenRegion;
+import net.minecraft.world.ChunkRegion;
+import net.minecraft.world.chunk.Chunk;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -34,14 +34,14 @@ public interface CrashHandler {
 
     AtomicReference<CrashHandler> INSTANCE = new AtomicReference<>(new ServerCrashHandler());
 
-    void crash(IChunk chunk, TFChunkGenerator generator, Throwable t);
+    void crash(Chunk chunk, TFChunkGenerator generator, Throwable t);
 
-    static void handle(IChunk chunk, TFChunkGenerator generator, Throwable t) {
+    static void handle(Chunk chunk, TFChunkGenerator generator, Throwable t) {
         INSTANCE.get().crash(chunk, generator, t);
     }
 
-    static void handle(WorldGenRegion region, TFChunkGenerator generator, Throwable t) {
-        IChunk chunk = region.getChunk(region.getMainChunkX(), region.getMainChunkZ());
+    static void handle(ChunkRegion region, TFChunkGenerator generator, Throwable t) {
+        Chunk chunk = region.getChunk(region.getCenterChunkX(), region.getCenterChunkZ());
         INSTANCE.get().crash(chunk, generator, t);
     }
 }

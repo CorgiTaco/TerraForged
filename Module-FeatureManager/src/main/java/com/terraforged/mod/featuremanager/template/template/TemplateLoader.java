@@ -28,14 +28,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.terraforged.mod.featuremanager.FeatureManager;
 import com.terraforged.mod.featuremanager.data.DataManager;
-import net.minecraft.util.ResourceLocation;
-
 import java.util.*;
+import net.minecraft.util.Identifier;
 
 public class TemplateLoader {
 
     private final DataManager manager;
-    private final Map<ResourceLocation, Template> cache = new HashMap<>();
+    private final Map<Identifier, Template> cache = new HashMap<>();
 
     public TemplateLoader(DataManager manager) {
         this.manager = manager;
@@ -44,7 +43,7 @@ public class TemplateLoader {
     public List<Template> load(String namespace, JsonArray paths) {
         List<Template> list = new ArrayList<>();
         for (JsonElement element : paths) {
-            ResourceLocation location = parsePath(namespace, element.getAsString());
+            Identifier location = parsePath(namespace, element.getAsString());
             manager.forEach(location.getPath(), DataManager.NBT, (name, data) -> {
                 Template template = cache.get(name);
                 if (template == null) {
@@ -64,7 +63,7 @@ public class TemplateLoader {
         return list;
     }
 
-    private static ResourceLocation parsePath(String namespace, String path) {
+    private static Identifier parsePath(String namespace, String path) {
         String location = path;
         int split = location.indexOf(':');
         if (split > 0) {
@@ -74,6 +73,6 @@ public class TemplateLoader {
                 location = "structures/" + location;
             }
         }
-        return new ResourceLocation(namespace, location);
+        return new Identifier(namespace, location);
     }
 }

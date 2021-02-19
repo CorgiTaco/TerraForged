@@ -33,14 +33,14 @@ import com.terraforged.mod.featuremanager.template.StructureUtils;
 import com.terraforged.mod.profiler.watchdog.WarnTimer;
 import com.terraforged.mod.profiler.watchdog.Watchdog;
 import com.terraforged.mod.profiler.watchdog.WatchdogContext;
-import net.minecraft.util.SharedSeedRandom;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeGenerationSettings;
-import net.minecraft.world.biome.BiomeManager;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.biome.GenerationSettings;
+import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.ChunkRandom;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
 
 import javax.annotation.Nullable;
@@ -62,18 +62,18 @@ public class TerrainCarver implements Generator.Carvers {
     }
 
     @Override
-    public void carveTerrain(BiomeManager biomes, IChunk chunk, GenerationStage.Carving type) {
+    public void carveTerrain(BiomeAccess biomes, Chunk chunk, GenerationStep.Carver type) {
         try (WatchdogContext context = Watchdog.punchIn(chunk, generator, timeout)) {
             carve(chunk, type, context);
         }
     }
 
-    private void carve(IChunk chunk, GenerationStage.Carving type, WatchdogContext context) {
+    private void carve(Chunk chunk, GenerationStep.Carver type, WatchdogContext context) {
         boolean nearRiver = nearRiver(chunk.getPos());
         boolean nearStructure = StructureUtils.hasOvergroundStructure(chunk);
         ChunkCarverFix carverChunk = new ChunkCarverFix(chunk, generator.getMaterials(), nearStructure, nearRiver);
 
-        SharedSeedRandom random = new SharedSeedRandom();
+        ChunkRandom random = new ChunkRandom();
         ChunkPos chunkpos = carverChunk.getPos();
         int chunkX = chunkpos.x;
         int chunkZ = chunkpos.z;
@@ -82,21 +82,21 @@ public class TerrainCarver implements Generator.Carvers {
         TFBiomeContainer biomeContainer = TFBiomeContainer.getOrNull(chunk);
         BiomeLookup lookup = new BiomeLookup(chunkpos, biomeContainer);
         BitSet mask = carverChunk.getCarvingMask(type);
-        Biome biome = generator.getBiomeProvider().getBiome(chunkpos.getXStart(), chunkpos.getZStart());
-        BiomeGenerationSettings settings = biome.getGenerationSettings();
+        Biome biome = generator.getBiomeSource().getBiome(chunkpos.getStartX(), chunkpos.getStartZ());
+        GenerationSettings settings = biome.getGenerationSettings();
 
         WarnTimer timer = Watchdog.getWarnTimer();
 
-        ListIterator<Supplier<ConfiguredCarver<?>>> iterator = settings.getCarvers(type).listIterator();
+        ListIterator<Supplier<ConfiguredCarver<?>>> iterator = settings.getCarversForStep(type).listIterator();
         for (int cx = chunkX - 8; cx <= chunkX + 8; ++cx) {
             for (int cz = chunkZ - 8; cz <= chunkZ + 8; ++cz) {
                 while (iterator.hasNext()) {
                     int index = iterator.nextIndex();
                     ConfiguredCarver<?> carver = iterator.next().get();
-                    random.setLargeFeatureSeed(generator.getSeed() + index, cx, cz);
+                    random.setCarverSeed(generator.getSeed() + index, cx, cz);
                     if (carver.shouldCarve(random, cx, cz)) {
                         long timestamp = timer.now();
-                        carver.carveRegion(carverChunk, lookup, random, seaLevel, cx, cz, chunkX, chunkZ, mask);
+                        carver.carve(carverChunk, lookup, random, seaLevel, cx, cz, chunkX, chunkZ, mask);
                         Generator.checkTime(TYPE, carver, timer, timestamp, context);
                     }
                 }
@@ -126,7 +126,7 @@ public class TerrainCarver implements Generator.Carvers {
                 // Method masks to chunk-local coordinates
                 return biomes.getBiome(pos.getX(), pos.getZ());
             }
-            return generator.getBiomeProvider().lookupBiome(cell, pos.getX(), pos.getZ());
+            return generator.getBiomeSource().lookupBiome(cell, pos.getX(), pos.getZ());
         }
     }
 

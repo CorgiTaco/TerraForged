@@ -24,11 +24,11 @@
 
 package com.terraforged.mod.profiler;
 
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.util.text.TextFormatting;
-import net.minecraft.util.text.event.HoverEvent;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.world.gen.GenerationStep;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -98,22 +98,22 @@ public enum Profiler {
         return timeMS() / Math.max(1.0, hits());
     }
 
-    public ITextComponent toText() {
-        return new StringTextComponent(name().toLowerCase())
-                .append(new StringTextComponent(String.format(": %.3fms", averageMS()))
-                        .modifyStyle(style -> style.forceFormatting(TextFormatting.WHITE)))
-                .modifyStyle(style -> style.applyFormatting(TextFormatting.YELLOW)
-                        .setHoverEvent(createHoverStats(minMS(), maxMS())));
+    public Text toText() {
+        return new LiteralText(name().toLowerCase())
+                .append(new LiteralText(String.format(": %.3fms", averageMS()))
+                        .styled(style -> style.withExclusiveFormatting(Formatting.WHITE)))
+                .styled(style -> style.withFormatting(Formatting.YELLOW)
+                        .withHoverEvent(createHoverStats(minMS(), maxMS())));
     }
 
-    public static Profiler get(GenerationStage.Carving stage) {
-        return stage == GenerationStage.Carving.AIR ? AIR_CARVERS : FLUID_CARVERS;
+    public static Profiler get(GenerationStep.Carver stage) {
+        return stage == GenerationStep.Carver.AIR ? AIR_CARVERS : FLUID_CARVERS;
     }
 
     public static HoverEvent createHoverStats(long min, long max) {
         String message = String.format("Min: %sms, Max: %sms", min, max);
         return new HoverEvent(HoverEvent.Action.SHOW_TEXT,
-                new StringTextComponent(message).modifyStyle(s -> s.forceFormatting(TextFormatting.WHITE)));
+                new LiteralText(message).styled(s -> s.withExclusiveFormatting(Formatting.WHITE)));
     }
 
     public static void reset() {

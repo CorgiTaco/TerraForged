@@ -34,11 +34,11 @@ import com.terraforged.mod.featuremanager.matcher.biome.BiomeMatcherParser;
 import com.terraforged.mod.featuremanager.matcher.feature.FeatureMatcher;
 import com.terraforged.mod.featuremanager.matcher.feature.FeatureMatcherParser;
 import com.terraforged.mod.featuremanager.transformer.*;
-import net.minecraft.util.ResourceLocation;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 
 import java.util.Optional;
+import net.minecraft.util.Identifier;
 
 public class FeatureModifierLoader {
 
@@ -59,7 +59,7 @@ public class FeatureModifierLoader {
         return modifiers;
     }
 
-    private static boolean load(ResourceLocation location, JsonObject root, FeatureModifiers modifiers) {
+    private static boolean load(Identifier location, JsonObject root, FeatureModifiers modifiers) {
         Optional<BiomeMatcher> biome = BiomeMatcherParser.parse(root, modifiers.getContext());
         if (!biome.isPresent()) {
             FeatureManager.LOG.error(LOAD, "  Invalid BiomeMatcher in: {}", location);

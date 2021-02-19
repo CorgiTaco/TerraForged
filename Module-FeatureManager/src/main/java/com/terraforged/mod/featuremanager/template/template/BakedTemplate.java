@@ -24,10 +24,9 @@
 
 package com.terraforged.mod.featuremanager.template.template;
 
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
-
 import java.util.stream.Stream;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
 
 public class BakedTemplate extends BakedTransform<BlockInfo[]> {
 
@@ -36,7 +35,7 @@ public class BakedTemplate extends BakedTransform<BlockInfo[]> {
     }
 
     @Override
-    protected BlockInfo[] apply(Mirror mirror, Rotation rotation, BlockInfo[] value) {
+    protected BlockInfo[] apply(BlockMirror mirror, BlockRotation rotation, BlockInfo[] value) {
         return Stream.of(value).map(block -> block.transform(mirror, rotation)).toArray(BlockInfo[]::new);
     }
 }

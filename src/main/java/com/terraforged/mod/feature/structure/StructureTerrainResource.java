@@ -26,20 +26,20 @@ package com.terraforged.mod.feature.structure;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import it.unimi.dsi.fastutil.objects.ObjectListIterator;
+import net.minecraft.structure.StructurePiece;
+import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.world.gen.feature.structure.StructurePiece;
 
 public class StructureTerrainResource {
 
     public final BlockPos.Mutable mutablePos = new BlockPos.Mutable();
-    public final MutableBoundingBox mutableBounds = new MutableBoundingBox();
-    public final MutableBoundingBox chunkBounds = new MutableBoundingBox();
+    public final BlockBox mutableBounds = new BlockBox();
+    public final BlockBox chunkBounds = new BlockBox();
     public final ObjectArrayList<StructurePiece> pieces = new ObjectArrayList<>(16);
     public final ObjectListIterator<StructurePiece> iterator = pieces.iterator();
 
     public StructureTerrainResource reset() {
-        mutablePos.setPos(BlockPos.ZERO);
+        mutablePos.set(BlockPos.ORIGIN);
         rewind();
         pieces.clear();
         return this;

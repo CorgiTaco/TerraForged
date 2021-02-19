@@ -24,9 +24,9 @@
 
 package com.terraforged.mod.client.gui.element;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.font.TextRenderer;
+import net.minecraft.client.util.math.MatrixStack;
 
 public class TFLabel extends TFButton {
 
@@ -45,8 +45,8 @@ public class TFLabel extends TFButton {
 
     @Override
     public void render(MatrixStack matrix, int mouseX, int mouseY, float partialTicks) {
-        Minecraft minecraft = Minecraft.getInstance();
-        FontRenderer fontrenderer = minecraft.fontRenderer;
-        fontrenderer.drawString(matrix, getMessage().getString(), x, y + (height - 8) / 2F, color);
+        MinecraftClient minecraft = MinecraftClient.getInstance();
+        TextRenderer fontrenderer = minecraft.textRenderer;
+        fontrenderer.draw(matrix, getMessage().getString(), x, y + (height - 8) / 2F, color);
     }
 }

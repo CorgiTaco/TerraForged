@@ -25,9 +25,9 @@
 package com.terraforged.mod.featuremanager.biome;
 
 import com.google.common.base.Suppliers;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -38,20 +38,20 @@ public class BiomeFeatures {
 
     public static final BiomeFeatures NONE = new BiomeFeatures();
 
-    private static final List<List<BiomeFeature>> NO_FEATURES = Stream.of(GenerationStage.Decoration.values())
+    private static final List<List<BiomeFeature>> NO_FEATURES = Stream.of(GenerationStep.Feature.values())
             .map(stage -> Collections.<BiomeFeature>emptyList())
             .collect(Collectors.toList());
 
-    private static final List<List<Structure<?>>> NO_STRUCTURES = Stream.of(GenerationStage.Decoration.values())
-            .map(stage -> Collections.<Structure<?>>emptyList())
+    private static final List<List<StructureFeature<?>>> NO_STRUCTURES = Stream.of(GenerationStep.Feature.values())
+            .map(stage -> Collections.<StructureFeature<?>>emptyList())
             .collect(Collectors.toList());
 
-    private static final Supplier<List<List<Structure<?>>>> STRUCTURES = Suppliers.memoize(() -> {
-        Map<GenerationStage.Decoration, List<Structure<?>>> map = ForgeRegistries.STRUCTURE_FEATURES.getValues().stream()
-                .collect(Collectors.groupingBy(Structure::getDecorationStage));
+    private static final Supplier<List<List<StructureFeature<?>>>> STRUCTURES = Suppliers.memoize(() -> {
+        Map<GenerationStep.Feature, List<StructureFeature<?>>> map = Registry.STRUCTURE_FEATURE.stream()
+                .collect(Collectors.groupingBy(StructureFeature::getGenerationStep));
 
-        List<List<Structure<?>>> list = new ArrayList<>();
-        for (GenerationStage.Decoration stage : GenerationStage.Decoration.values()) {
+        List<List<StructureFeature<?>>> list = new ArrayList<>();
+        for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
             list.add(map.getOrDefault(stage, Collections.emptyList()));
         }
 
@@ -59,7 +59,7 @@ public class BiomeFeatures {
     });
 
     private final List<List<BiomeFeature>> features;
-    private final List<List<Structure<?>>> structures;
+    private final List<List<StructureFeature<?>>> structures;
 
     private BiomeFeatures() {
         features = NO_FEATURES;
@@ -75,7 +75,7 @@ public class BiomeFeatures {
         return features;
     }
 
-    public List<List<Structure<?>>> getStructures() {
+    public List<List<StructureFeature<?>>> getStructures() {
         return structures;
     }
 
@@ -86,18 +86,18 @@ public class BiomeFeatures {
     public static class Builder {
 
         private int size;
-        private Map<GenerationStage.Decoration, List<BiomeFeature>> features = Collections.emptyMap();
+        private Map<GenerationStep.Feature, List<BiomeFeature>> features = Collections.emptyMap();
 
-        public Builder add(GenerationStage.Decoration stage, Collection<BiomeFeature> features) {
+        public Builder add(GenerationStep.Feature stage, Collection<BiomeFeature> features) {
             for (BiomeFeature feature : features) {
                 add(stage, feature);
             }
             return this;
         }
 
-        public Builder add(GenerationStage.Decoration stage, BiomeFeature feature) {
+        public Builder add(GenerationStep.Feature stage, BiomeFeature feature) {
             if (features.isEmpty()) {
-                features = new EnumMap<>(GenerationStage.Decoration.class);
+                features = new EnumMap<>(GenerationStep.Feature.class);
             }
             features.computeIfAbsent(stage, s -> new ArrayList<>()).add(feature);
             size++;
@@ -106,7 +106,7 @@ public class BiomeFeatures {
 
         private List<List<BiomeFeature>> compileFeatures() {
             List<List<BiomeFeature>> list = new ArrayList<>(size);
-            for (GenerationStage.Decoration stage : GenerationStage.Decoration.values()) {
+            for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
                 list.add(features.getOrDefault(stage, Collections.emptyList()));
             }
             return list;

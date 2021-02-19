@@ -24,9 +24,9 @@
 
 package com.terraforged.mod.featuremanager.util;
 
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.decorator.ConfiguredDecorator;
 import net.minecraft.world.gen.feature.*;
-import net.minecraft.world.gen.placement.ConfiguredPlacement;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,18 +51,18 @@ public class FeatureDebugger {
         }
 
         // note SingleRandomFeature & SingleRandomFeatureConfig names a mixed up
-        if (feature.config instanceof SingleRandomFeature) {
-            single((SingleRandomFeature) feature.config, errors);
+        if (feature.config instanceof SimpleRandomFeatureConfig) {
+            single((SimpleRandomFeatureConfig) feature.config, errors);
             return;
         }
 
-        if (feature.config instanceof TwoFeatureChoiceConfig) {
-            twoChoice((TwoFeatureChoiceConfig) feature.config, errors);
+        if (feature.config instanceof RandomBooleanFeatureConfig) {
+            twoChoice((RandomBooleanFeatureConfig) feature.config, errors);
             return;
         }
 
-        if (feature.config instanceof MultipleRandomFeatureConfig) {
-            multi((MultipleRandomFeatureConfig) feature.config, errors);
+        if (feature.config instanceof RandomFeatureConfig) {
+            multi((RandomFeatureConfig) feature.config, errors);
             return;
         }
     }
@@ -72,19 +72,19 @@ public class FeatureDebugger {
         checkDecorator(config.decorator, errors);
     }
 
-    private static void single(SingleRandomFeature config, List<String> errors) {
+    private static void single(SimpleRandomFeatureConfig config, List<String> errors) {
         for (Supplier<ConfiguredFeature<?, ?>> feature : config.features) {
             checkConfiguredFeature(feature.get(), errors);
         }
     }
 
-    private static void twoChoice(TwoFeatureChoiceConfig config, List<String> errors) {
-        checkConfiguredFeature(config.field_227285_a_.get(), errors);
-        checkConfiguredFeature(config.field_227286_b_.get(), errors);
+    private static void twoChoice(RandomBooleanFeatureConfig config, List<String> errors) {
+        checkConfiguredFeature(config.featureTrue.get(), errors);
+        checkConfiguredFeature(config.featureFalse.get(), errors);
     }
 
-    private static void multi(MultipleRandomFeatureConfig config, List<String> errors) {
-        for (ConfiguredRandomFeatureList feature : config.features) {
+    private static void multi(RandomFeatureConfig config, List<String> errors) {
+        for (RandomFeatureEntry feature : config.features) {
             checkConfiguredFeature(feature.feature.get(), errors);
         }
     }
@@ -101,14 +101,14 @@ public class FeatureDebugger {
         if (feature == null) {
             list.add("null feature");
             return false;
-        } else if (!ForgeRegistries.FEATURES.containsValue(feature)) {
+        } else if (Registry.FEATURE.getId(feature) != null) {
             list.add("unregistered feature: " + feature.getClass().getName());
             return false;
         }
         return true;
     }
 
-    private static boolean checkConfig(IFeatureConfig config, List<String> list) {
+    private static boolean checkConfig(FeatureConfig config, List<String> list) {
         if (config == null) {
             list.add("null config");
             return false;
@@ -123,7 +123,7 @@ public class FeatureDebugger {
         }
     }
 
-    private static boolean checkDecorator(ConfiguredPlacement<?> decorator, List<String> list) {
+    private static boolean checkDecorator(ConfiguredDecorator<?> decorator, List<String> list) {
         if (decorator == null) {
             list.add("null configured placement");
             return false;
@@ -138,7 +138,7 @@ public class FeatureDebugger {
 //            list.add("unregistered placement: " + decorator.decorator.getClass().getName());
 //        }
 
-        if (decorator.func_242877_b() == null) {
+        if (decorator.getConfig() == null) {
             valid = false;
             list.add("null decorator config");
         } else {
@@ -146,7 +146,7 @@ public class FeatureDebugger {
 //                decorator.config.serialize(JsonOps.INSTANCE);
             } catch (Throwable t) {
                 valid = false;
-                list.add("placement config: " + decorator.func_242877_b().getClass().getName() + ", error: " + t.getMessage());
+                list.add("placement config: " + decorator.getConfig().getClass().getName() + ", error: " + t.getMessage());
             }
         }
         return valid;

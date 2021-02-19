@@ -29,38 +29,38 @@ import com.terraforged.noise.Source;
 import com.terraforged.noise.source.NoiseSource;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public interface ColumnDecorator {
 
     NoiseSource variance = (NoiseSource) Source.perlin(0, 100, 1);
 
-    void decorate(IChunk chunk, DecoratorContext context, int x, int y, int z);
+    void decorate(Chunk chunk, DecoratorContext context, int x, int y, int z);
 
     default void decorate(SurfaceChunk buffer, DecoratorContext context, int x, int y, int z) {
         decorate(buffer.getDelegate(), context, x, y, z);
     }
 
-    default void setState(IChunk chunk, int x, int y, int z, BlockState state, boolean moving) {
+    default void setState(Chunk chunk, int x, int y, int z, BlockState state, boolean moving) {
         chunk.setBlockState(new BlockPos(x, y, z), state, moving);
     }
 
-    default int fillDown(DecoratorContext context, IChunk chunk, int x, int z, int from, int to, BlockState state) {
+    default int fillDown(DecoratorContext context, Chunk chunk, int x, int z, int from, int to, BlockState state) {
         for (int dy = from; dy > to; dy--) {
-            chunk.setBlockState(context.pos.setPos(x, dy, z), state, false);
+            chunk.setBlockState(context.pos.set(x, dy, z), state, false);
         }
         return to;
     }
 
-    default int fillDownSolid(DecoratorContext context, IChunk chunk, int x, int z, int from, int to, BlockState state) {
+    default int fillDownSolid(DecoratorContext context, Chunk chunk, int x, int z, int from, int to, BlockState state) {
         for (int dy = from; dy > to; dy--) { ;
-            replaceSolid(chunk, context.pos.setPos(x, dy, z), state);
+            replaceSolid(chunk, context.pos.set(x, dy, z), state);
         }
         return to;
     }
 
-    static void replaceSolid(IChunk chunk, BlockPos pos, BlockState state) {
-        if (chunk.getBlockState(pos).isAir(chunk, pos)) {
+    static void replaceSolid(Chunk chunk, BlockPos pos, BlockState state) {
+        if (chunk.getBlockState(pos).isAir()) {
             return;
         }
         chunk.setBlockState(pos, state, false);

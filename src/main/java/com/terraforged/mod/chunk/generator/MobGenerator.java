@@ -25,35 +25,30 @@
 package com.terraforged.mod.chunk.generator;
 
 import com.terraforged.mod.chunk.TFChunkGenerator;
-import net.minecraft.entity.EntityClassification;
-import net.minecraft.util.SharedSeedRandom;
+import net.minecraft.entity.SpawnGroup;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.world.ChunkRegion;
 import net.minecraft.world.GameRules;
+import net.minecraft.world.SpawnHelper;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.MobSpawnInfo;
-import net.minecraft.world.gen.WorldGenRegion;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureManager;
-import net.minecraft.world.server.ServerWorld;
-import net.minecraft.world.spawner.CatSpawner;
-import net.minecraft.world.spawner.PatrolSpawner;
-import net.minecraft.world.spawner.PhantomSpawner;
-import net.minecraft.world.spawner.WorldEntitySpawner;
-import net.minecraftforge.common.world.StructureSpawnManager;
-import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.biome.SpawnSettings;
+import net.minecraft.world.gen.*;
+import net.minecraft.world.gen.feature.StructureFeature;
+//import net.minecraftforge.common.world.StructureSpawnManager;
+//import net.minecraftforge.event.TickEvent;
+//import net.minecraftforge.eventbus.api.SubscribeEvent;
+//import net.minecraftforge.fml.common.Mod;
 
 import java.util.List;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class MobGenerator implements Generator.Mobs {
 
     // may be accessed cross-thread
     private static volatile boolean mobSpawning = true;
 
     private final CatSpawner catSpawner = new CatSpawner();
-    private final PatrolSpawner patrolSpawner = new PatrolSpawner();
+    private final PillagerSpawner patrolSpawner = new PillagerSpawner();
     private final PhantomSpawner phantomSpawner = new PhantomSpawner();
     private final TFChunkGenerator generator;
 
@@ -62,63 +57,56 @@ public class MobGenerator implements Generator.Mobs {
     }
 
     @Override
-    public final void generateMobs(WorldGenRegion region) {
+    public final void generateMobs(ChunkRegion region) {
         // vanilla does NOT check the mobSpawning gamerule before calling this
         if (MobGenerator.mobSpawning) {
-            int chunkX = region.getMainChunkX();
-            int chunkZ = region.getMainChunkZ();
-            Biome biome = region.getChunk(chunkX, chunkZ).getBiomes().getNoiseBiome(0, 0, 0);
-            SharedSeedRandom sharedseedrandom = new SharedSeedRandom();
-            sharedseedrandom.setDecorationSeed(region.getSeed(), chunkX << 4, chunkZ << 4);
-            WorldEntitySpawner.performWorldGenSpawning(region, biome, chunkX, chunkZ, sharedseedrandom);
+            int chunkX = region.getCenterChunkX();
+            int chunkZ = region.getCenterChunkZ();
+            Biome biome = region.getChunk(chunkX, chunkZ).getBiomeArray().getBiomeForNoiseGen(0, 0, 0);
+            ChunkRandom sharedseedrandom = new ChunkRandom();
+            sharedseedrandom.setPopulationSeed(region.getSeed(), chunkX << 4, chunkZ << 4);
+            SpawnHelper.populateEntities(region, biome, chunkX, chunkZ, sharedseedrandom);
         }
     }
 
     @Override
     public final void tickSpawners(ServerWorld world, boolean hostile, boolean peaceful) {
-        phantomSpawner.func_230253_a_(world, hostile, peaceful);
-        patrolSpawner.func_230253_a_(world, hostile, peaceful);
-        catSpawner.func_230253_a_(world, hostile, peaceful);
+        phantomSpawner.spawn(world, hostile, peaceful);
+        patrolSpawner.spawn(world, hostile, peaceful);
+        catSpawner.spawn(world, hostile, peaceful);
     }
 
     @Override
-    public List<MobSpawnInfo.Spawners> getSpawns(Biome biome, StructureManager structures, EntityClassification type, BlockPos pos) {
-        List<MobSpawnInfo.Spawners> spawns = StructureSpawnManager.getStructureSpawns(structures, type, pos);
+    public List<SpawnSettings.SpawnEntry> getSpawns(Biome biome, StructureAccessor structures, SpawnGroup type, BlockPos pos) {
+        List<SpawnSettings.SpawnEntry> spawns = null;
         if (spawns != null) {
             return spawns;
         }
 
-        if (structures.getStructureStart(pos, true, Structure.SWAMP_HUT).isValid()) {
-            if (type == EntityClassification.MONSTER) {
-                return Structure.SWAMP_HUT.getSpawnList();
+        if (structures.getStructureAt(pos, true, StructureFeature.SWAMP_HUT).hasChildren()) {
+            if (type == SpawnGroup.MONSTER) {
+                return StructureFeature.SWAMP_HUT.getMonsterSpawns();
             }
 
-            if (type == EntityClassification.CREATURE) {
-                return Structure.SWAMP_HUT.getCreatureSpawnList();
-            }
-        }
-
-        if (type == EntityClassification.MONSTER) {
-            if (structures.getStructureStart(pos, false, Structure.PILLAGER_OUTPOST).isValid()) {
-                return Structure.PILLAGER_OUTPOST.getSpawnList();
-            }
-
-            if (structures.getStructureStart(pos, false, Structure.MONUMENT).isValid()) {
-                return Structure.MONUMENT.getSpawnList();
-            }
-
-            if (structures.getStructureStart(pos, true, Structure.FORTRESS).isValid()) {
-                return Structure.FORTRESS.getSpawnList();
+            if (type == SpawnGroup.CREATURE) {
+                return StructureFeature.SWAMP_HUT.getCreatureSpawns();
             }
         }
 
-        return biome.getMobSpawnInfo().getSpawners(type);
-    }
+        if (type == SpawnGroup.MONSTER) {
+            if (structures.getStructureAt(pos, false, StructureFeature.PILLAGER_OUTPOST).hasChildren()) {
+                return StructureFeature.PILLAGER_OUTPOST.getMonsterSpawns();
+            }
 
-    @SubscribeEvent
-    public static void tick(TickEvent.WorldTickEvent event) {
-        if (event.phase == TickEvent.Phase.START && event.side.isServer()) {
-            mobSpawning = event.world.getGameRules().get(GameRules.DO_MOB_SPAWNING).get();
+            if (structures.getStructureAt(pos, false, StructureFeature.MONUMENT).hasChildren()) {
+                return StructureFeature.MONUMENT.getMonsterSpawns();
+            }
+
+            if (structures.getStructureAt(pos, true, StructureFeature.FORTRESS).hasChildren()) {
+                return StructureFeature.FORTRESS.getMonsterSpawns();
+            }
         }
+
+        return biome.getSpawnSettings().getSpawnEntry(type);
     }
 }

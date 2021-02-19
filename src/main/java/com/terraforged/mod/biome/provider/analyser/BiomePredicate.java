@@ -62,7 +62,7 @@ public interface BiomePredicate {
         return (d, b) -> d.rainfall >= min && d.rainfall <= max;
     }
 
-    static BiomePredicate rainType(Biome.RainType... rainTypes) {
+    static BiomePredicate rainType(Biome.Precipitation... rainTypes) {
         return (d, b) -> anyMatch(b.getPrecipitation(), rainTypes, (c1, c2) -> c1 == c2);
     }
 
@@ -96,10 +96,10 @@ public interface BiomePredicate {
     BiomePredicate RIVER = type(Biome.Category.RIVER).not(LAKE);
     BiomePredicate SAVANNA = type(Biome.Category.SAVANNA).or(temp(0.8, 2).and(rain(-1, 0.4)));
     BiomePredicate STEPPE = name("steppe").and(temp(0.3, 1));
-    BiomePredicate TAIGA = type(Biome.Category.TAIGA).or(temp(0.19, 0.35)).not(rainType(Biome.RainType.SNOW));
+    BiomePredicate TAIGA = type(Biome.Category.TAIGA).or(temp(0.19, 0.35)).not(rainType(Biome.Precipitation.SNOW));
     BiomePredicate TEMPERATE_FOREST = type(Biome.Category.FOREST).and(rain(-1, 0.81));
     BiomePredicate TEMPERATE_RAINFOREST = type(Biome.Category.FOREST).and(rain(0.8, 2));
     BiomePredicate TROPICAL_RAINFOREST = type(Biome.Category.JUNGLE);
-    BiomePredicate TUNDRA = type(Biome.Category.ICY).or(temp(-1, 0.21).and(rainType(Biome.RainType.SNOW)));
+    BiomePredicate TUNDRA = type(Biome.Category.ICY).or(temp(-1, 0.21).and(rainType(Biome.Precipitation.SNOW)));
     BiomePredicate WETLAND = type(Biome.Category.SWAMP);
 }

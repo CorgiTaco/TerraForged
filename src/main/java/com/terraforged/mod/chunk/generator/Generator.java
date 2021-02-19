@@ -28,23 +28,23 @@ import com.terraforged.mod.Log;
 import com.terraforged.mod.featuremanager.util.identity.Identifier;
 import com.terraforged.mod.profiler.watchdog.WarnTimer;
 import com.terraforged.mod.profiler.watchdog.WatchdogContext;
-import net.minecraft.entity.EntityClassification;
+import net.minecraft.entity.SpawnGroup;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.IWorld;
+import net.minecraft.util.registry.DynamicRegistryManager;
+import net.minecraft.world.ChunkRegion;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeManager;
-import net.minecraft.world.biome.MobSpawnInfo;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.WorldGenRegion;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureManager;
-import net.minecraft.world.gen.feature.template.TemplateManager;
-import net.minecraft.world.gen.settings.StructureSeparationSettings;
-import net.minecraft.world.server.ServerWorld;
+import net.minecraft.world.biome.SpawnSettings;
+import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.chunk.StructureConfig;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -56,7 +56,7 @@ public interface Generator {
         /**
          * Generates the biomes for this chunk
          */
-        void generateBiomes(IChunk chunk);
+        void generateBiomes(Chunk chunk);
     }
 
     interface Terrain {
@@ -64,7 +64,7 @@ public interface Generator {
         /**
          * Generates the basic heightmap and populates with stone/water/bedrock accordinly
          */
-        void generateTerrain(IWorld world, IChunk chunk, StructureManager structures);
+        void generateTerrain(WorldAccess world, Chunk chunk, StructureAccessor structures);
     }
 
     interface Features {
@@ -73,7 +73,7 @@ public interface Generator {
          * Places biome specific features into the center-chunk of the world gen region
          * The region consists of the center chunk (the chunk being generated) and it's 8 neighbouring chunks (citation needed)
          */
-        void generateFeatures(WorldGenRegion region, StructureManager manager);
+        void generateFeatures(ChunkRegion region, StructureAccessor manager);
     }
 
     interface Strongholds {
@@ -86,17 +86,17 @@ public interface Generator {
 
     interface Structures {
 
-        StructureSeparationSettings getSeparationSettings(Structure<?> structure);
+        StructureConfig getSeparationSettings(StructureFeature<?> structure);
 
         /**
          * Determines where structures will be placed during chunk gen
          */
-        void generateStructureStarts(IChunk chunk, DynamicRegistries registries, StructureManager structures, TemplateManager templates);
+        void generateStructureStarts(Chunk chunk, DynamicRegistryManager registries, StructureAccessor structures, StructureManager templates);
 
         /**
          * Determines where individual structure pieces will be placed based on the start positions
          */
-        void generateStructureReferences(ISeedReader world, IChunk chunk, StructureManager structures);
+        void generateStructureReferences(StructureWorldAccess world, Chunk chunk, StructureAccessor structures);
     }
 
     interface Surfaces {
@@ -104,7 +104,7 @@ public interface Generator {
         /**
          * Applies biome specific surface generation during chunk gen
          */
-        void generateSurface(WorldGenRegion world, IChunk chunk);
+        void generateSurface(ChunkRegion world, Chunk chunk);
     }
 
     interface Carvers {
@@ -112,7 +112,7 @@ public interface Generator {
         /**
          * Cuts caves/ravines during chunk gen according to the carving stage
          */
-        void carveTerrain(BiomeManager biomes, IChunk chunk, GenerationStage.Carving type);
+        void carveTerrain(BiomeAccess biomes, Chunk chunk, GenerationStep.Carver type);
     }
 
     interface Mobs {
@@ -120,7 +120,7 @@ public interface Generator {
         /**
          * Spawns mobs during chunk gen
          */
-        void generateMobs(WorldGenRegion region);
+        void generateMobs(ChunkRegion region);
 
         /**
          * Ticks the worlds mob spawners post chunk gen
@@ -130,7 +130,7 @@ public interface Generator {
         /**
          * Gets a list of possible spawns at the given position
          */
-        List<MobSpawnInfo.Spawners> getSpawns(Biome biome, StructureManager structures, EntityClassification type, BlockPos pos);
+        List<SpawnSettings.SpawnEntry> getSpawns(Biome biome, StructureAccessor structures, SpawnGroup type, BlockPos pos);
     }
 
     static void checkTime(String type, Object identity, WarnTimer timer, long timestamp, WatchdogContext context) {

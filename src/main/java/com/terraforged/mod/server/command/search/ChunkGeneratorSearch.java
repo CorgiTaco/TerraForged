@@ -25,8 +25,8 @@
 package com.terraforged.mod.server.command.search;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public abstract class ChunkGeneratorSearch extends Search {
 

@@ -29,11 +29,11 @@ import com.terraforged.mod.api.chunk.ChunkDelegate;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.biome.BiomeContainer;
-import net.minecraft.world.chunk.ChunkPrimer;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.biome.source.BiomeArray;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkSection;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.chunk.ProtoChunk;
 
 import java.util.Set;
 
@@ -46,16 +46,16 @@ public class FastChunk extends ChunkDelegate {
 
     private final int blockX;
     private final int blockZ;
-    private final ChunkPrimer primer;
+    private final ProtoChunk primer;
     private final Heightmap worldSurface;
     private final Heightmap oceanSurface;
     private final BlockPos.Mutable mutable = new BlockPos.Mutable();
 
-    protected FastChunk(ChunkPrimer primer) {
+    protected FastChunk(ProtoChunk primer) {
         super(primer);
         this.primer = primer;
-        this.blockX = primer.getPos().getXStart();
-        this.blockZ = primer.getPos().getZStart();
+        this.blockX = primer.getPos().getStartX();
+        this.blockZ = primer.getPos().getStartZ();
         this.worldSurface = primer.getHeightmap(Heightmap.Type.WORLD_SURFACE_WG);
         this.oceanSurface = primer.getHeightmap(Heightmap.Type.OCEAN_FLOOR_WG);
     }
@@ -70,12 +70,12 @@ public class FastChunk extends ChunkDelegate {
             int dz = pos.getZ() & 15;
             BlockState replaced = section.setBlockState(dx, dy, dz, state, false);
             if (!state.isAir()) {
-                mutable.setPos(blockX + dx, pos.getY(), blockZ + dz);
-                if (state.getLightValue(primer, mutable) != 0) {
-                    primer.addLightPosition(mutable);
+                mutable.set(blockX + dx, pos.getY(), blockZ + dz);
+                if (state.getAmbientOcclusionLightLevel(primer, mutable) != 0) {
+                    primer.addLightSource(mutable);
                 }
-                worldSurface.update(dx, pos.getY(), dz, state);
-                oceanSurface.update(dx, pos.getY(), dz, state);
+                worldSurface.trackUpdate(dx, pos.getY(), dz, state);
+                oceanSurface.trackUpdate(dx, pos.getY(), dz, state);
             }
             section.unlock();
             return replaced;
@@ -83,21 +83,21 @@ public class FastChunk extends ChunkDelegate {
         return Blocks.VOID_AIR.getDefaultState();
     }
 
-    public void setBiomes(BiomeContainer biomes) {
+    public void setBiomes(BiomeArray biomes) {
         primer.setBiomes(biomes);
     }
 
-    public static IChunk wrap(IChunk chunk) {
+    public static Chunk wrap(Chunk chunk) {
         if (chunk instanceof FastChunk) {
             return chunk;
         }
-        if (chunk.getClass() == ChunkPrimer.class) {
-            return new FastChunk((ChunkPrimer) chunk);
+        if (chunk.getClass() == ProtoChunk.class) {
+            return new FastChunk((ProtoChunk) chunk);
         }
         return chunk;
     }
 
-    public static void updateWGHeightmaps(IChunk chunk) {
-        Heightmap.updateChunkHeightmaps(chunk, HEIGHT_MAPS);
+    public static void updateWGHeightmaps(Chunk chunk) {
+        Heightmap.populateHeightmaps(chunk, HEIGHT_MAPS);
     }
 }

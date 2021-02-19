@@ -42,7 +42,7 @@ import com.terraforged.mod.chunk.settings.TerraSettings;
 import com.terraforged.mod.config.PerfDefaults;
 import com.terraforged.mod.material.Materials;
 import net.minecraft.block.BlockState;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class TerraContext extends GeneratorContext {
 
@@ -87,7 +87,7 @@ public class TerraContext extends GeneratorContext {
         return new TerraContext(this, offset);
     }
 
-    public DecoratorContext decorator(IChunk chunk) {
+    public DecoratorContext decorator(Chunk chunk) {
         return new DecoratorContext(chunk, levels, worldGenerator.get().getClimate(), false);
     }
 

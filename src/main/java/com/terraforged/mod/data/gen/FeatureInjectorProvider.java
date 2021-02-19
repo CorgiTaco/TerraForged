@@ -35,9 +35,9 @@ import com.terraforged.mod.featuremanager.matcher.feature.FeatureMatcher;
 import com.terraforged.mod.featuremanager.modifier.FeatureModifiers;
 import com.terraforged.mod.featuremanager.modifier.Jsonifiable;
 import com.terraforged.mod.featuremanager.modifier.Modifier;
+import net.minecraft.data.DataCache;
 import net.minecraft.data.DataGenerator;
-import net.minecraft.data.DirectoryCache;
-import net.minecraft.data.IDataProvider;
+import net.minecraft.data.DataProvider;
 import org.apache.commons.lang3.text.translate.JavaUnicodeEscaper;
 
 import java.io.BufferedWriter;
@@ -49,7 +49,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class FeatureInjectorProvider implements IDataProvider {
+public class FeatureInjectorProvider implements DataProvider {
 
     private final Path dir;
     private final TFBiomeContext context = TFBiomeContext.dynamic();
@@ -59,7 +59,7 @@ public class FeatureInjectorProvider implements IDataProvider {
     private final BiomeMatcher vanillaAndTF;
 
     public FeatureInjectorProvider(DataGenerator gen, String namespace) {
-        dir = gen.getOutputFolder().resolve(Paths.get("data", namespace, "features"));
+        dir = gen.getOutput().resolve(Paths.get("data", namespace, "features"));
         vanillaAndTF = BiomeMatcher.of(getContext(), "minecraft:*", "terraforged:*");
     }
 
@@ -95,7 +95,7 @@ public class FeatureInjectorProvider implements IDataProvider {
     }
 
     @Override
-    public void act(DirectoryCache cache) throws IOException {
+    public void run(DataCache cache) throws IOException {
         for (Map.Entry<String, Modifier<Jsonifiable>> entry : modifiers.entrySet()) {
             Path dest = dir.resolve(entry.getKey() + ".json");
             Modifier<Jsonifiable> modifier = entry.getValue();
@@ -107,15 +107,15 @@ public class FeatureInjectorProvider implements IDataProvider {
     }
 
     @SuppressWarnings("UnstableApiUsage")
-    private void write(JsonElement json, Path dest, DirectoryCache cache) throws IOException {
+    private void write(JsonElement json, Path dest, DataCache cache) throws IOException {
         String data = JavaUnicodeEscaper.outsideOf(0, 0x7f).translate(gson.toJson(json));
-        String hash = IDataProvider.HASH_FUNCTION.hashUnencodedChars(data).toString();
-        if (!Objects.equals(cache.getPreviousHash(dest), hash) || !Files.exists(dest)) {
+        String hash = DataProvider.SHA1.hashUnencodedChars(data).toString();
+        if (!Objects.equals(cache.getOldSha1(dest), hash) || !Files.exists(dest)) {
             Files.createDirectories(dest.getParent());
             try (BufferedWriter bufferedwriter = Files.newBufferedWriter(dest)) {
                 bufferedwriter.write(data);
             }
         }
-        cache.recordHash(dest, hash);
+        cache.updateSha1(dest, hash);
     }
 }

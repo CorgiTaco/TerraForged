@@ -34,43 +34,43 @@ import com.terraforged.mod.api.event.SetupEvent;
 import com.terraforged.mod.api.material.geology.GeologyManager;
 import com.terraforged.mod.api.material.layer.LayerManager;
 import com.terraforged.mod.featuremanager.modifier.FeatureModifiers;
-import net.minecraftforge.common.MinecraftForge;
+//import net.minecraftforge.common.MinecraftForge;
 
 import java.util.List;
 
 public class SetupHooks {
 
     public static <T extends TerrainProvider> T setup(T provider, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.Terrain(provider, context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.Terrain(provider, context));
         return provider;
     }
 
     public static <T extends SurfaceManager> T setup(T manager, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.Surface(manager, context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.Surface(manager, context));
         return manager;
     }
 
     public static <T extends ModifierManager> T setup(T manager, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.BiomeModifier(manager, context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.BiomeModifier(manager, context));
         return manager;
     }
 
     public static <T extends LayerManager> T setup(T manager, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.Layers(manager, context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.Layers(manager, context));
         return manager;
     }
 
     public static <T extends GeologyManager> T setup(T manager, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.Geology(manager, context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.Geology(manager, context));
         return manager;
     }
 
     public static <T extends FeatureModifiers> T setup(T manager, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.Features(manager, context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.Features(manager, context));
         return manager;
     }
 
     public static void setup(List<ColumnDecorator> base, List<ColumnDecorator> feature, GeneratorContext context) {
-        MinecraftForge.EVENT_BUS.post(new SetupEvent.Decorators(new DecoratorManager(base, feature), context));
+//        MinecraftForge.EVENT_BUS.post(new SetupEvent.Decorators(new DecoratorManager(base, feature), context));
     }
 }

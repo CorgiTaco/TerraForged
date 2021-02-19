@@ -26,7 +26,7 @@ package com.terraforged.mod.profiler.watchdog;
 
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.profiler.timings.TimingStack;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -44,17 +44,17 @@ public class ChunkTimeoutException extends UncheckedException {
     private static final String TABLE_FORMAT = "\n\t\t\t\t%1$-8s%2$-12s%3$-10s%4$-10s%5$-1s";
     private static final String TABLE_FOOTER = "\n";
 
-    private final IChunk chunk;
+    private final Chunk chunk;
     private final TFChunkGenerator generator;
 
-    protected ChunkTimeoutException(String phase, Object identity, long totalTime, long itemTime, TimingStack stack, IChunk chunk, TFChunkGenerator generator, Thread thread) {
+    protected ChunkTimeoutException(String phase, Object identity, long totalTime, long itemTime, TimingStack stack, Chunk chunk, TFChunkGenerator generator, Thread thread) {
         super(createMessage(phase, identity, totalTime, itemTime, stack), thread.getStackTrace());
         this.chunk = chunk;
         this.generator = generator;
         setStackTrace(thread.getStackTrace());
     }
 
-    public IChunk getChunk() {
+    public Chunk getChunk() {
         return chunk;
     }
 

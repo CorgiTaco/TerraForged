@@ -25,35 +25,39 @@
 package com.terraforged.mod.biome.utils;
 
 import com.terraforged.mod.featuremanager.matcher.dynamic.DynamicMatcher;
-import net.minecraft.util.RegistryKey;
+import net.fabricmc.fabric.api.biome.v1.OverworldBiomes;
+import net.fabricmc.fabric.api.biome.v1.OverworldClimate;
+import net.minecraft.util.registry.BuiltinRegistries;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeGenerationSettings;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.biome.GenerationSettings;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.carver.ConfiguredCarver;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraftforge.common.BiomeDictionary;
-import net.minecraftforge.common.BiomeManager;
-import net.minecraftforge.registries.ForgeRegistries;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Supplier;
 
 public class BiomeBuilder extends Biome.Builder {
 
     private final Biome parentBiome;
-    private final Map<GenerationStage.Decoration, List<Supplier<ConfiguredFeature<?, ?>>>> features = new EnumMap<>(GenerationStage.Decoration.class);
+    private final Map<GenerationStep.Feature, List<Supplier<ConfiguredFeature<?, ?>>>> features = new EnumMap<>(GenerationStep.Feature.class);
 
     private RegistryKey<Biome> parentKey;
-    private BiomeGenerationSettings.Builder settings = new BiomeGenerationSettings.Builder();
+    private GenerationSettings.Builder settings = new GenerationSettings.Builder();
 
     private int weight = -1;
-    private BiomeManager.BiomeType type = null;
-    private final List<BiomeDictionary.Type> dictionaryTypes = new ArrayList<>();
+    private OverworldClimate type = null;
+//    private final List<BiomeDictionary.Type> dictionaryTypes = new ArrayList<>();
 
     public BiomeBuilder(RegistryKey<Biome> key, Biome biome) {
         this.parentBiome = biome;
         this.parentKey = key;
-        this.dictionaryTypes.addAll(BiomeDictionary.getTypes(parentKey));
+//        this.dictionaryTypes.addAll(BiomeDictionary.getTypes(parentKey));
     }
 
     public void setParentKey(RegistryKey<Biome> parentKey) {
@@ -65,8 +69,8 @@ public class BiomeBuilder extends Biome.Builder {
     }
 
     public void registerTypes(RegistryKey<Biome> key) {
-        dictionaryTypes.forEach(type -> BiomeDictionary.addTypes(key, type));
-        BiomeDictionary.addTypes(key, BiomeDictionary.Type.OVERWORLD);
+//        dictionaryTypes.forEach(type -> BiomeDictionary.addTypes(key, type));
+//        BiomeDictionary.addTypes(key, BiomeDictionary.Type.OVERWORLD);
     }
 
     public void registerWeight(RegistryKey<Biome> key) {
@@ -74,17 +78,17 @@ public class BiomeBuilder extends Biome.Builder {
             return;
         }
         if (weight > 0) {
-            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, weight));
-        } else if (BiomeDictionary.getTypes(key).contains(BiomeDictionary.Type.RARE)) {
-            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, 2));
-        } else if (BiomeDictionary.getTypes(key).contains(BiomeDictionary.Type.FOREST)) {
-            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, 5));
-        } else {
-            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, 10));
+            OverworldBiomes.addContinentalBiome(key, type, weight);
+//        } else if (BiomeDictionary.getTypes(key).contains(BiomeDictionary.Type.RARE)) {
+//            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, 2));
+//        } else if (BiomeDictionary.getTypes(key).contains(BiomeDictionary.Type.FOREST)) {
+//            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, 5));
+//        } else {
+//            BiomeManager.addBiome(type, new BiomeManager.BiomeEntry(key, 10));
         }
     }
 
-    public void type(BiomeManager.BiomeType type) {
+    public void type(OverworldClimate type) {
         this.type = type;
     }
 
@@ -92,32 +96,32 @@ public class BiomeBuilder extends Biome.Builder {
         this.weight = weight;
     }
 
-    public void setType(BiomeDictionary.Type... types) {
-        dictionaryTypes.clear();
+    public void setType(Object... types) {
+//        dictionaryTypes.clear();
         addType(types);
     }
 
-    public void addType(BiomeDictionary.Type... types) {
-        Collections.addAll(dictionaryTypes, types);
+    public void addType(Object... types) {
+//        Collections.addAll(dictionaryTypes, types);
     }
 
     protected BiomeBuilder init() {
-        settings = new BiomeGenerationSettings.Builder();
+        settings = new GenerationSettings.Builder();
         // surface
-        settings.withSurfaceBuilder(parentBiome.getGenerationSettings().getSurfaceBuilder().get());
+        settings.surfaceBuilder(parentBiome.getGenerationSettings().getSurfaceBuilder().get());
         // mobs
-        withMobSpawnSettings(parentBiome.getMobSpawnInfo());
+        spawnSettings(parentBiome.getSpawnSettings());
         // category
         category(parentBiome.getCategory());
         // structures
-        parentBiome.getGenerationSettings().getStructures().forEach(s -> settings.withStructure(s.get()));
+        parentBiome.getGenerationSettings().getStructureFeatures().forEach(s -> settings.structureFeature(s.get()));
         // carvers
-        for (GenerationStage.Carving stage : GenerationStage.Carving.values()) {
-            List<Supplier<ConfiguredCarver<?>>> carvers = parentBiome.getGenerationSettings().getCarvers(stage);
-            carvers.forEach(c -> this.settings.withCarver(stage, c.get()));
+        for (GenerationStep.Carver stage : GenerationStep.Carver.values()) {
+            List<Supplier<ConfiguredCarver<?>>> carvers = parentBiome.getGenerationSettings().getCarversForStep(stage);
+            carvers.forEach(c -> this.settings.carver(stage, c.get()));
         }
         // features
-        for (GenerationStage.Decoration stage : GenerationStage.Decoration.values()) {
+        for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
             List<Supplier<ConfiguredFeature<?, ?>>> features = parentBiome.getGenerationSettings().getFeatures().get(stage.ordinal());
             features.forEach(f -> this.features.computeIfAbsent(stage, s -> new ArrayList<>()).add(f));
         }
@@ -125,7 +129,7 @@ public class BiomeBuilder extends Biome.Builder {
     }
 
     public void filterFeatures(DynamicMatcher... filters) {
-        for (GenerationStage.Decoration stage : GenerationStage.Decoration.values()) {
+        for (GenerationStep.Feature stage : GenerationStep.Feature.values()) {
             List<Supplier<ConfiguredFeature<?, ?>>> list = features.computeIfAbsent(stage, s -> new ArrayList<>());
             list.removeIf(f -> {
                 ConfiguredFeature<?, ?> feature = f.get();
@@ -140,30 +144,30 @@ public class BiomeBuilder extends Biome.Builder {
     }
 
     public void copyAmbience(RegistryKey<Biome> key) {
-        Biome biome = ForgeRegistries.BIOMES.getValue(key.getLocation());
+        Biome biome = BuiltinRegistries.BIOME.get(key.getValue());
         if (biome == null) {
             return;
         }
-        setEffects(biome.getAmbience());
+        effects(biome.getEffects());
     }
 
     public Biome getBiome() {
         return parentBiome;
     }
 
-    public BiomeGenerationSettings.Builder getSettings() {
+    public GenerationSettings.Builder getSettings() {
         return settings;
     }
 
     @Override
     public Biome build() {
-        withGenerationSettings(settings.build());
+        generationSettings(settings.build());
         return super.build();
     }
 
     public Biome build(RegistryKey<Biome> key) {
-        features.forEach((stage, list) -> list.forEach(f -> getSettings().withFeature(stage, f.get())));
-        withGenerationSettings(settings.build());
-        return super.build().setRegistryName(key.getLocation());
+        features.forEach((stage, list) -> list.forEach(f -> getSettings().feature(stage, f.get())));
+        generationSettings(settings.build());
+        return Registry.register(BuiltinRegistries.BIOME, key.getValue(), super.build());
     }
 }

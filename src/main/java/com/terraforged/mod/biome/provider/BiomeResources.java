@@ -29,7 +29,7 @@ import com.terraforged.engine.world.heightmap.WorldLookup;
 import com.terraforged.mod.biome.provider.analyser.BiomeAnalyser;
 import com.terraforged.mod.chunk.TerraContext;
 import com.terraforged.mod.util.setup.SetupHooks;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 
 public class BiomeResources {

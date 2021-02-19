@@ -25,8 +25,8 @@
 package com.terraforged.mod.mixin.common;
 
 import com.terraforged.mod.util.PropertyUtils;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.world.gen.settings.DimensionGeneratorSettings;
+import net.minecraft.util.registry.DynamicRegistryManager;
+import net.minecraft.world.gen.GeneratorOptions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -38,11 +38,11 @@ import java.util.Properties;
  * Non-essential.
  * Allows users to define the TF world type without a namespace.
  */
-@Mixin(DimensionGeneratorSettings.class)
+@Mixin(GeneratorOptions.class)
 public class MixinDimensionGeneratorSettings {
 
-    @Inject(method = "func_242753_a", at = @At("HEAD"))
-    private static void onLoadLevel(DynamicRegistries registries, Properties properties, CallbackInfoReturnable<DimensionGeneratorSettings> ci) {
+    @Inject(method = "fromProperties", at = @At("HEAD"))
+    private static void onLoadLevel(DynamicRegistryManager registries, Properties properties, CallbackInfoReturnable<GeneratorOptions> ci) {
         PropertyUtils.fixTFLevelType(properties);
     }
 }

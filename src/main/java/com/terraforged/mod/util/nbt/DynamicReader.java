@@ -32,8 +32,8 @@ import com.mojang.serialization.DynamicOps;
 import com.mojang.serialization.JsonOps;
 import com.terraforged.engine.serialization.serializer.Deserializer;
 import com.terraforged.engine.serialization.serializer.Reader;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.NBTDynamicOps;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -139,8 +139,8 @@ public class DynamicReader<T> implements Reader {
         return new DynamicReader<>(root, JsonOps.INSTANCE);
     }
 
-    public static DynamicReader<INBT> nbt(INBT root) {
-        return new DynamicReader<>(root, NBTDynamicOps.INSTANCE);
+    public static DynamicReader<Tag> nbt(Tag root) {
+        return new DynamicReader<>(root, NbtOps.INSTANCE);
     }
 
     public static <T> DynamicReader<T> of(Dynamic<T> dynamic) {

@@ -33,11 +33,11 @@ import com.terraforged.mod.chunk.util.FastChunk;
 import com.terraforged.noise.source.Line;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeContainer;
-import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.biome.source.BiomeArray;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ProtoChunk;
 
-public class TFBiomeContainer extends BiomeContainer {
+public class TFBiomeContainer extends BiomeArray {
 
     private static final int BITS_WIDTH = (int) Math.round(Math.log(16.0D) / Math.log(2.0D)) - 2;
     private static final int ZOOM_VERT = (int) Math.round(Math.log(256.0D) / Math.log(2.0D)) - 2;
@@ -67,7 +67,7 @@ public class TFBiomeContainer extends BiomeContainer {
         return featureBiome;
     }
 
-    public BiomeContainer bakeBiomes(boolean convertToVanilla, TFBiomeContext context) {
+    public BiomeArray bakeBiomes(boolean convertToVanilla, TFBiomeContext context) {
         if (convertToVanilla) {
             Biome[] biomeArray = new Biome[biomes.length];
             for (int i = 0; i < biomes.length; i++) {
@@ -75,21 +75,21 @@ public class TFBiomeContainer extends BiomeContainer {
                 biome = ModBiomes.remap(biome, context);
                 biomeArray[i] = biome;
             }
-            return new BiomeContainer(context.biomes.getRegistry(), biomeArray);
+            return new BiomeArray(context.biomes.getRegistry(), biomeArray);
         }
-        return new BiomeContainer(context.biomes.getRegistry(), biomes);
+        return new BiomeArray(context.biomes.getRegistry(), biomes);
     }
 
-    public static TFBiomeContainer getOrNull(IChunk chunk) {
-        BiomeContainer biomes = chunk.getBiomes();
+    public static TFBiomeContainer getOrNull(Chunk chunk) {
+        BiomeArray biomes = chunk.getBiomeArray();
         if (biomes instanceof TFBiomeContainer) {
             return (TFBiomeContainer) biomes;
         }
         return null;
     }
 
-    public static TFBiomeContainer getOrCreate(IChunk chunk, ChunkReader reader, TFBiomeProvider biomeProvider) {
-        BiomeContainer biomes = chunk.getBiomes();
+    public static TFBiomeContainer getOrCreate(Chunk chunk, ChunkReader reader, TFBiomeProvider biomeProvider) {
+        BiomeArray biomes = chunk.getBiomeArray();
         if (biomes instanceof TFBiomeContainer) {
             return (TFBiomeContainer) biomes;
         }
@@ -99,7 +99,7 @@ public class TFBiomeContainer extends BiomeContainer {
             ((FastChunk) chunk).setBiomes(container);
         } else {
             // replace/set the primer's biomes
-            ((ChunkPrimer) chunk).setBiomes(container);
+            ((ProtoChunk) chunk).setBiomes(container);
         }
 
         return container;

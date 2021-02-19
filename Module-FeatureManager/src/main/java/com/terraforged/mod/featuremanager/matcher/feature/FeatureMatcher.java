@@ -27,8 +27,7 @@ package com.terraforged.mod.featuremanager.matcher.feature;
 import com.google.gson.*;
 import com.terraforged.engine.world.biome.map.BiomeContext;
 import com.terraforged.mod.featuremanager.modifier.Jsonifiable;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistryEntry;
+import net.minecraft.util.Identifier;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -171,11 +170,8 @@ public class FeatureMatcher implements Predicate<JsonElement>, Jsonifiable {
         if (arg instanceof Boolean) {
             return new JsonPrimitive((Boolean) arg);
         }
-        if (arg instanceof ResourceLocation) {
+        if (arg instanceof Identifier) {
             return new JsonPrimitive(arg.toString());
-        }
-        if (arg instanceof ForgeRegistryEntry) {
-            return new JsonPrimitive(((ForgeRegistryEntry<?>) arg).getRegistryName() + "");
         }
         return JsonNull.INSTANCE;
     }

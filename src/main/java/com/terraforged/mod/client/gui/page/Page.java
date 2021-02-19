@@ -24,24 +24,29 @@
 
 package com.terraforged.mod.client.gui.page;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
+import com.terraforged.mod.client.gui.IButtonHeight;
 import com.terraforged.mod.client.gui.element.*;
 import com.terraforged.mod.client.gui.screen.ScrollPane;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayRenderer;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayScreen;
 import com.terraforged.mod.util.DataUtils;
-import net.minecraft.client.gui.IGuiEventListener;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.INBT;
-import net.minecraftforge.common.util.Constants;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public abstract class Page implements IGuiEventListener, OverlayRenderer {
+public abstract class Page implements Element, OverlayRenderer {
+
+    public static final int TAG_COMPOUND = 10;
+    public static final int TAG_INT         = 3;
+    public static final int TAG_FLOAT       = 5;
+    public static final int TAG_STRING      = 8;
 
     protected static final Runnable NO_CALLBACK = () -> {};
 
@@ -70,7 +75,7 @@ public abstract class Page implements IGuiEventListener, OverlayRenderer {
     @Override
     public void renderOverlays(MatrixStack matrixStack, Screen screen, int mouseX, int mouseY) {
         for (Column column : columns) {
-            if (column.scrollPane.getEventListeners().isEmpty()) {
+            if (column.scrollPane.children().isEmpty()) {
                 continue;
             }
             column.scrollPane.renderOverlays(matrixStack, screen, mouseX, mouseY);
@@ -79,7 +84,7 @@ public abstract class Page implements IGuiEventListener, OverlayRenderer {
 
     public void visit(Consumer<ScrollPane> consumer) {
         for (Column column : columns) {
-            if (column.scrollPane.getEventListeners().isEmpty()) {
+            if (column.scrollPane.children().isEmpty()) {
                 continue;
             }
             consumer.accept(column.scrollPane);
@@ -89,7 +94,7 @@ public abstract class Page implements IGuiEventListener, OverlayRenderer {
     public boolean action(Function<ScrollPane, Boolean> action) {
         boolean result = false;
         for (Column column : columns) {
-            if (column.scrollPane.getEventListeners().isEmpty()) {
+            if (column.scrollPane.children().isEmpty()) {
                 continue;
             }
             boolean b = action.apply(column.scrollPane);
@@ -125,46 +130,46 @@ public abstract class Page implements IGuiEventListener, OverlayRenderer {
         init(parent);
     }
 
-    public void addElements(int x, int y, Column column, CompoundNBT settings, Consumer<Widget> consumer, Runnable callback) {
+    public void addElements(int x, int y, Column column, CompoundTag settings, Consumer<AbstractButtonWidget> consumer, Runnable callback) {
         addElements(x, y, column, settings, false, consumer, callback);
     }
 
-    public void addElements(int x, int y, Column column, CompoundNBT settings, boolean deep, Consumer<Widget> consumer, Runnable callback) {
+    public void addElements(int x, int y, Column column, CompoundTag settings, boolean deep, Consumer<AbstractButtonWidget> consumer, Runnable callback) {
         AtomicInteger top = new AtomicInteger(y);
 
         DataUtils.streamKeys(settings).forEach(name -> {
-            Widget button = createButton(name, settings, callback);
+            AbstractButtonWidget button = createButton(name, settings, callback);
             if (button != null) {
                 button.setWidth(column.width);
-                button.setHeight(SLIDER_HEIGHT);
+                ((IButtonHeight) button).setHeight(SLIDER_HEIGHT);
                 button.x = x;
                 button.y = top.getAndAdd(SLIDER_HEIGHT + SLIDER_PAD);
                 consumer.accept(button);
                 onAddWidget(button);
             } else if (deep) {
-                INBT child = settings.get(name);
-                if (child == null || child.getId() != Constants.NBT.TAG_COMPOUND) {
+                Tag child = settings.get(name);
+                if (child == null || child.getType() != TAG_COMPOUND) {
                     return;
                 }
-                Widget label = createLabel(name, settings);
+                AbstractButtonWidget label = createLabel(name, settings);
                 if (label != null) {
                     label.x = x;
                     label.y = top.getAndAdd(SLIDER_HEIGHT + SLIDER_PAD);
                     consumer.accept(label);
                 }
-                addElements(x, top.get(), column, (CompoundNBT) child, true, consumer, callback);
+                addElements(x, top.get(), column, (CompoundTag) child, true, consumer, callback);
             }
         });
     }
 
-    public Widget createButton(String name, CompoundNBT value, Runnable callback) {
-        INBT tag = value.get(name);
+    public AbstractButtonWidget createButton(String name, CompoundTag value, Runnable callback) {
+        Tag tag = value.get(name);
         if (tag == null) {
             return null;
         }
 
-        byte type = tag.getId();
-        if (type == Constants.NBT.TAG_INT) {
+        byte type = tag.getType();
+        if (type == TAG_INT) {
             if (isRand(name, value)) {
                 return new TFRandButton(name, value).callback(callback);
             }
@@ -172,28 +177,28 @@ public abstract class Page implements IGuiEventListener, OverlayRenderer {
                 return new TFSlider.BoundInt(name, value).callback(callback);
             }
             return new TFSlider.Int(name, value).callback(callback);
-        } else if (type == Constants.NBT.TAG_FLOAT) {
+        } else if (type == TAG_FLOAT) {
             if (hasLimit(name, value)) {
                 return new TFSlider.BoundFloat(name, value).callback(callback);
             }
             return new TFSlider.Float(name, value).callback(callback);
         } else if (hasOptions(name, value)) {
             return new TFToggle(name, value).callback(callback);
-        } else if (type == Constants.NBT.TAG_STRING) {
+        } else if (type == TAG_STRING) {
             return new TFTextBox(name, value);
         } else {
             return null;
         }
     }
 
-    public Widget createLabel(String name, CompoundNBT settings) {
+    public AbstractButtonWidget createLabel(String name, CompoundTag settings) {
         if (settings.getCompound("#" + name).contains("noname")) {
             return null;
         }
-        return new TFLabel(Element.getDisplayName(name, settings));
+        return new TFLabel(com.terraforged.mod.client.gui.element.Element.getDisplayName(name, settings));
     }
 
-    public void onAddWidget(Widget widget) {
+    public void onAddWidget(AbstractButtonWidget widget) {
 
     }
 
@@ -220,15 +225,15 @@ public abstract class Page implements IGuiEventListener, OverlayRenderer {
         }
     }
 
-    private static boolean hasOptions(String name, CompoundNBT value) {
+    private static boolean hasOptions(String name, CompoundTag value) {
         return value.getCompound("#" + name).contains("options");
     }
 
-    private static boolean hasLimit(String name, CompoundNBT value) {
+    private static boolean hasLimit(String name, CompoundTag value) {
         return value.getCompound("#" + name).contains("limit_lower") || value.getCompound("#" + name).contains("limit_upper");
     }
 
-    private static boolean isRand(String name, CompoundNBT value) {
+    private static boolean isRand(String name, CompoundTag value) {
         return value.getCompound("#" + name).contains("random");
     }
 }

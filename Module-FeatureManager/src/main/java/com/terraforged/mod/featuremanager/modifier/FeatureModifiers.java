@@ -37,15 +37,14 @@ import com.terraforged.mod.featuremanager.transformer.*;
 import com.terraforged.mod.featuremanager.util.FeatureDebugger;
 import com.terraforged.mod.featuremanager.util.identity.FeatureIdentifier;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
-import net.minecraftforge.eventbus.api.Event;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class FeatureModifiers extends Event {
+public class FeatureModifiers {
 
     private final DynamicList dynamics = new DynamicList();
     private final ModifierList<FeatureReplacer> replacers = new ModifierList<>();
@@ -94,11 +93,11 @@ public class FeatureModifiers extends Event {
         transformers.sort();
     }
 
-    public List<BiomeFeature> getAppenders(GenerationStage.Decoration stage, Biome biome, InjectionPosition position) {
+    public List<BiomeFeature> getAppenders(GenerationStep.Feature stage, Biome biome, InjectionPosition position) {
         return getAppenders(stage, position, biome);
     }
 
-    public ModifierSet getFeature(GenerationStage.Decoration stage, Biome biome, ConfiguredFeature<?, ?> feature) {
+    public ModifierSet getFeature(GenerationStep.Feature stage, Biome biome, ConfiguredFeature<?, ?> feature) {
         try {
             JsonElement element = FeatureSerializer.serialize(feature);
             String s = element.toString();
@@ -183,7 +182,7 @@ public class FeatureModifiers extends Event {
         return result;
     }
 
-    private List<BiomeFeature> getAppenders(GenerationStage.Decoration stage, InjectionPosition position, Biome biome) {
+    private List<BiomeFeature> getAppenders(GenerationStep.Feature stage, InjectionPosition position, Biome biome) {
         List<BiomeFeature> result = Collections.emptyList();
         for (Modifier<FeatureAppender> modifier : getAppenders()) {
             if (modifier.getModifier().getPosition() != position) {

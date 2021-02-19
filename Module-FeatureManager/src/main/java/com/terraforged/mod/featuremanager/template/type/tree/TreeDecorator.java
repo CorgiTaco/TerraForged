@@ -35,9 +35,9 @@ public class TreeDecorator implements Decorator<TreeDecoratorBuffer> {
 
     private static final DummySet<BlockPos> DUMMY_SET = DummySet.get();
 
-    private final net.minecraft.world.gen.treedecorator.TreeDecorator decorator;
+    private final net.minecraft.world.gen.tree.TreeDecorator decorator;
 
-    public TreeDecorator(net.minecraft.world.gen.treedecorator.TreeDecorator decorator) {
+    public TreeDecorator(net.minecraft.world.gen.tree.TreeDecorator decorator) {
         this.decorator = decorator;
     }
 
@@ -47,7 +47,7 @@ public class TreeDecorator implements Decorator<TreeDecoratorBuffer> {
             return;
         }
 
-        decorator.func_225576_a_(
+        decorator.generate(
                 buffer.getDelegate(),
                 random,
                 buffer.getLogs(),

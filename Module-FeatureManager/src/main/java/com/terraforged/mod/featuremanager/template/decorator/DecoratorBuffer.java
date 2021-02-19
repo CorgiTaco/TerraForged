@@ -24,9 +24,9 @@
 
 package com.terraforged.mod.featuremanager.template.decorator;
 
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 
-public interface DecoratorBuffer extends IWorld {
+public interface DecoratorBuffer extends WorldAccess {
 
-    IWorld getDelegate();
+    WorldAccess getDelegate();
 }

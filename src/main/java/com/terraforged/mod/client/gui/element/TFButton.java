@@ -24,24 +24,25 @@
 
 package com.terraforged.mod.client.gui.element;
 
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.text.StringTextComponent;
+import com.terraforged.mod.client.gui.IButtonHeight;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.text.LiteralText;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class TFButton extends Button implements Element {
+public class TFButton extends ButtonWidget implements Element {
 
     private final List<String> tooltip;
 
     public TFButton(String displayString) {
-        super(0, 0, 200, 20, new StringTextComponent(displayString), b -> {});
+        super(0, 0, 200, 20, new LiteralText(displayString), b -> {});
         this.tooltip = Collections.emptyList();
     }
 
     public TFButton(String displayString, String... tooltip) {
-        super(0, 0, 200, 20, new StringTextComponent(displayString), b -> {});
+        super(0, 0, 200, 20, new LiteralText(displayString), b -> {});
         this.tooltip = Arrays.asList(tooltip);
     }
 
@@ -49,7 +50,7 @@ public class TFButton extends Button implements Element {
         this.x = x;
         this.y = y;
         setWidth(width);
-        setHeight(height);
+        ((IButtonHeight) this).setHeight(height);
         return this;
     }
 
@@ -78,7 +79,7 @@ public class TFButton extends Button implements Element {
         button.x = x;
         button.y = y;
         button.setWidth(width);
-        button.setHeight(height);
+        ((IButtonHeight) button).setHeight(height);
 
         return button;
     }

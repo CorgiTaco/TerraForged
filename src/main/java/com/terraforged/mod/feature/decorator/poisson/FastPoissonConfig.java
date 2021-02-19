@@ -35,9 +35,9 @@ import com.terraforged.noise.Module;
 import com.terraforged.noise.Source;
 import com.terraforged.noise.util.NoiseUtil;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.world.gen.placement.IPlacementConfig;
+import net.minecraft.world.gen.decorator.DecoratorConfig;
 
-public class FastPoissonConfig implements IPlacementConfig {
+public class FastPoissonConfig implements DecoratorConfig {
 
     public static final float DEFAULT_JITTER = 0.8F;
 

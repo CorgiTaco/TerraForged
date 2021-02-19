@@ -32,9 +32,9 @@ import com.terraforged.mod.featuremanager.util.RegistryInstance;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.util.registry.RegistryLookupCodec;
 import net.minecraft.world.biome.Biome;
 
@@ -46,8 +46,8 @@ public class TFBiomeContext implements BiomeContext<RegistryKey<Biome>> {
     private final BiomeProperties properties;
     public final RegistryInstance<Biome> biomes;
 
-    public TFBiomeContext(DynamicRegistries.Impl registries) {
-        this(registries.getRegistry(Registry.BIOME_KEY));
+    public TFBiomeContext(DynamicRegistryManager.Impl registries) {
+        this(registries.get(Registry.BIOME_KEY));
     }
 
     public TFBiomeContext(Registry<Biome> biomes) {
@@ -93,14 +93,14 @@ public class TFBiomeContext implements BiomeContext<RegistryKey<Biome>> {
     }
 
     private static <T> TFBiomeContext decodeBiomeContext(Dynamic<T> dynamic) {
-        return new TFBiomeContext(Codecs.decodeAndGet(RegistryLookupCodec.getLookUpCodec(Registry.BIOME_KEY).codec(), dynamic));
+        return new TFBiomeContext(Codecs.decodeAndGet(RegistryLookupCodec.of(Registry.BIOME_KEY).codec(), dynamic));
     }
 
     private static <T> Dynamic<T> encodeBiomeContext(TFBiomeContext context, DynamicOps<T> ops) {
-        return new Dynamic<>(ops, Codecs.encodeAndGet(RegistryLookupCodec.getLookUpCodec(Registry.BIOME_KEY).codec(), context.biomes.getRegistry(), ops));
+        return new Dynamic<>(ops, Codecs.encodeAndGet(RegistryLookupCodec.of(Registry.BIOME_KEY).codec(), context.biomes.getRegistry(), ops));
     }
 
     public static TFBiomeContext dynamic() {
-        return new TFBiomeContext(DynamicRegistries.func_239770_b_());
+        return new TFBiomeContext(DynamicRegistryManager.create());
     }
 }

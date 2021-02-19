@@ -33,50 +33,36 @@ import com.terraforged.mod.feature.decorator.poisson.FastPoissonAtSurface;
 import com.terraforged.mod.feature.feature.BushFeature;
 import com.terraforged.mod.feature.feature.DiskFeature;
 import com.terraforged.mod.feature.feature.FreezeLayer;
+import net.fabricmc.fabric.api.biome.v1.OverworldBiomes;
+import net.fabricmc.fabric.api.biome.v1.OverworldClimate;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.biome.Biomes;
-import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.placement.Placement;
-import net.minecraftforge.common.BiomeManager;
-import net.minecraftforge.common.world.ForgeWorldType;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
+import net.minecraft.world.biome.BiomeKeys;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class RegistrationEvents {
 
     static void registerCodecs() {
-        Registry.register(Registry.BIOME_PROVIDER_CODEC, TerraForgedMod.MODID + ":climate", TFBiomeProvider.CODEC);
-        Registry.register(Registry.CHUNK_GENERATOR_CODEC, TerraForgedMod.MODID + ":generator", TFChunkGenerator.CODEC);
+        Registry.register(Registry.BIOME_SOURCE, TerraForgedMod.MODID + ":climate", TFBiomeProvider.CODEC);
+        Registry.register(Registry.CHUNK_GENERATOR, TerraForgedMod.MODID + ":generator", TFChunkGenerator.CODEC);
     }
 
     static void registerMissingBiomeTypes() {
-        BiomeManager.addBiome(BiomeManager.BiomeType.ICY, new BiomeManager.BiomeEntry(Biomes.ICE_SPIKES, 2));
-        BiomeManager.addBiome(BiomeManager.BiomeType.WARM, new BiomeManager.BiomeEntry(Biomes.MUSHROOM_FIELDS, 2));
-        BiomeManager.addBiome(BiomeManager.BiomeType.WARM, new BiomeManager.BiomeEntry(Biomes.MUSHROOM_FIELD_SHORE, 2));
+        OverworldBiomes.addContinentalBiome(BiomeKeys.ICE_SPIKES, OverworldClimate.SNOWY, 0.2);
+        OverworldBiomes.addContinentalBiome(BiomeKeys.MUSHROOM_FIELDS, OverworldClimate.TEMPERATE, 0.2);
+        OverworldBiomes.addContinentalBiome(BiomeKeys.MUSHROOM_FIELD_SHORE, OverworldClimate.TEMPERATE, 0.2);
     }
 
-    @SubscribeEvent
-    public static void registerLevels(RegistryEvent.Register<ForgeWorldType> event) {
-        Log.info("Registering level types");
-        event.getRegistry().register(LevelType.TERRAFORGED);
-    }
-
-    @SubscribeEvent
-    public static void registerFeatures(RegistryEvent.Register<Feature<?>> event) {
+    public static void registerFeatures() {
         Log.info("Registering features");
-        event.getRegistry().register(TerraFeatures.INSTANCE);
-        event.getRegistry().register(DiskFeature.INSTANCE);
-        event.getRegistry().register(FreezeLayer.INSTANCE);
-        event.getRegistry().register(BushFeature.INSTANCE);
-        event.getRegistry().register(ContextSelectorFeature.INSTANCE);
+        TerraFeatures.INSTANCE.toString();
+        DiskFeature.INSTANCE.toString();
+        FreezeLayer.INSTANCE.toString();
+        BushFeature.INSTANCE.toString();
+        ContextSelectorFeature.INSTANCE.toString();
     }
 
-    @SubscribeEvent
-    public static void registerDecorators(RegistryEvent.Register<Placement<?>> event) {
+    public static void registerDecorators() {
         Log.info("Registering decorators");
-        event.getRegistry().register(FilterDecorator.INSTANCE);
-        event.getRegistry().register(FastPoissonAtSurface.INSTANCE);
+        FilterDecorator.INSTANCE.toString();
+        FastPoissonAtSurface.INSTANCE.toString();
     }
 }

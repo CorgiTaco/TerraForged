@@ -27,8 +27,8 @@ package com.terraforged.mod.featuremanager.util.identity;
 import com.google.common.base.Suppliers;
 import com.google.gson.JsonElement;
 import com.terraforged.mod.featuremanager.FeatureSerializer;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.WorldGenRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 
-public class FeatureIdentifier implements Identifier {
+public class FeatureIdentifier implements com.terraforged.mod.featuremanager.util.identity.Identifier {
 
     public static final FeatureIdentifier NONE = new FeatureIdentifier(Collections.emptyList());
 
@@ -96,7 +96,7 @@ public class FeatureIdentifier implements Identifier {
     }
 
     public static FeatureIdentifier getIdentity(ConfiguredFeature<?, ?> feature, JsonElement jsonElement) {
-        ResourceLocation name = WorldGenRegistries.CONFIGURED_FEATURE.getKey(feature);
+        Identifier name = BuiltinRegistries.CONFIGURED_FEATURE.getId(feature);
         if (name != null) {
             return new FeatureIdentifier(Collections.singletonList(name.toString()));
         }

@@ -25,7 +25,6 @@
 package com.terraforged.mod.client.gui.screen;
 
 import com.google.gson.JsonElement;
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.terraforged.mod.LevelType;
 import com.terraforged.mod.Log;
 import com.terraforged.mod.chunk.TFChunkGenerator;
@@ -40,33 +39,35 @@ import com.terraforged.mod.client.gui.screen.page.PresetsPage;
 import com.terraforged.mod.client.gui.screen.page.SimplePreviewPage;
 import com.terraforged.mod.client.gui.screen.page.WorldPage;
 import com.terraforged.mod.client.gui.screen.preview.PreviewPage;
+import com.terraforged.mod.mixin.access.MoreOptionsDialogAccess;
 import com.terraforged.mod.util.DataUtils;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.IGuiEventListener;
-import net.minecraft.client.gui.screen.CreateWorldScreen;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.Element;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.world.CreateWorldScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraft.world.gen.settings.DimensionGeneratorSettings;
-import net.minecraft.world.gen.settings.DimensionStructuresSettings;
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.text.LiteralText;
+import net.minecraft.util.registry.DynamicRegistryManager;
+import net.minecraft.world.gen.GeneratorOptions;
+import net.minecraft.world.gen.chunk.StructuresConfig;
 
 public class ConfigScreen extends OverlayScreen {
 
-    private static final Button.IPressable NO_ACTION = b -> {};
+    private static final ButtonWidget.PressAction NO_ACTION = b -> {};
 
     private final Page[] pages;
     private final PreviewPage preview;
     private final CreateWorldScreen parent;
-    private final DimensionGeneratorSettings inputSettings;
+    private final GeneratorOptions inputSettings;
     private final Instance instance;
 
     private int pageIndex = 0;
-    private DimensionGeneratorSettings outputSettings;
+    private GeneratorOptions outputSettings;
 
-    public ConfigScreen(CreateWorldScreen parent, DimensionGeneratorSettings settings) {
+    public ConfigScreen(CreateWorldScreen parent, GeneratorOptions settings) {
         this.inputSettings = settings;
         this.outputSettings = settings;
         this.parent = parent;
@@ -116,26 +117,26 @@ public class ConfigScreen extends OverlayScreen {
         }
 
         // -52
-        addButton(new Button(buttonsCenter - buttonWidth - buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.CANCEL.getText(), b -> closeScreen()));
+        addButton(new ButtonWidget(buttonsCenter - buttonWidth - buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.CANCEL.getText(), b -> onClose()));
 
         // +2
-        addButton(new Button(buttonsCenter + buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.DONE.getText(), b -> {
+        addButton(new ButtonWidget(buttonsCenter + buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.DONE.getText(), b -> {
             for (Page page : pages) {
                 page.save();
             }
 
             Log.debug("Updating generator settings...");
             TerraSettings settings = instance.copySettings();
-            DynamicRegistries registries = parent.field_238934_c_.func_239055_b_();
+            DynamicRegistryManager.Impl registries = parent.moreOptionsDialog.method_29700();
             outputSettings = LevelType.updateOverworld(inputSettings, registries, settings);
 
             Log.debug("Updating seed...");
             ConfigScreen.setSeed(parent, preview.getSeed());
-            closeScreen();
+            onClose();
         }));
 
         // -106
-        addButton(new Button(buttonsCenter - (buttonWidth * 2 + (buttonPad * 3)), buttonsRow, buttonWidth, buttonHeight, new StringTextComponent("<<"), NO_ACTION) {
+        addButton(new ButtonWidget(buttonsCenter - (buttonWidth * 2 + (buttonPad * 3)), buttonsRow, buttonWidth, buttonHeight, new LiteralText("<<"), NO_ACTION) {
             @Override
             public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
                 super.active = hasPrevious();
@@ -153,7 +154,7 @@ public class ConfigScreen extends OverlayScreen {
         });
 
         // +56
-        addButton(new Button(buttonsCenter + buttonWidth + (buttonPad * 3), buttonsRow, buttonWidth, buttonHeight, new StringTextComponent(">>"), NO_ACTION) {
+        addButton(new ButtonWidget(buttonsCenter + buttonWidth + (buttonPad * 3), buttonsRow, buttonWidth, buttonHeight, new LiteralText(">>"), NO_ACTION) {
             @Override
             public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
                 super.active = hasNext();
@@ -243,21 +244,21 @@ public class ConfigScreen extends OverlayScreen {
     }
 
     @Override
-    public void closeScreen() {
+    public void onClose() {
         Log.debug("Returning to parent screen");
         for (Page page : pages) {
             page.close();
         }
         preview.close();
-        Minecraft.getInstance().displayGuiScreen(parent);
-        parent.field_238934_c_.func_239043_a_(outputSettings);
+        MinecraftClient.getInstance().openScreen(parent);
+        ((MoreOptionsDialogAccess) parent.moreOptionsDialog).invokeSetGeneratorOptions(outputSettings);
     }
 
     public void syncStructureSettings(TerraSettings settings) {
-        DimensionGeneratorSettings level = inputSettings;
-        if (level.func_236225_f_() instanceof TFChunkGenerator) {
-            TerraContext context = ((TFChunkGenerator) level.func_236225_f_()).getContext();
-            DimensionStructuresSettings structuresSettings = level.func_236225_f_().func_235957_b_();
+        GeneratorOptions level = inputSettings;
+        if (level.getChunkGenerator() instanceof TFChunkGenerator) {
+            TerraContext context = ((TFChunkGenerator) level.getChunkGenerator()).getContext();
+            StructuresConfig structuresSettings = level.getChunkGenerator().getStructuresConfig();
             settings.structures.load(structuresSettings, context.biomeContext);
         }
     }
@@ -283,10 +284,10 @@ public class ConfigScreen extends OverlayScreen {
         return -1;
     }
 
-    protected static TerraSettings getInitialSettings(DimensionGeneratorSettings level) {
-        if (level.func_236225_f_() instanceof TFChunkGenerator) {
-            TerraContext context = ((TFChunkGenerator) level.func_236225_f_()).getContext();
-            DimensionStructuresSettings structuresSettings = level.func_236225_f_().func_235957_b_();
+    protected static TerraSettings getInitialSettings(GeneratorOptions level) {
+        if (level.getChunkGenerator() instanceof TFChunkGenerator) {
+            TerraContext context = ((TFChunkGenerator) level.getChunkGenerator()).getContext();
+            StructuresConfig structuresSettings = level.getChunkGenerator().getStructuresConfig();
             TerraSettings settings = context.terraSettings;
             TerraSettings copy = new TerraSettings(settings.world.seed);
             JsonElement dataCopy = DataUtils.toJson(settings);
@@ -305,8 +306,8 @@ public class ConfigScreen extends OverlayScreen {
     }
 
     private static TextFieldWidget getWidget(CreateWorldScreen screen) {
-        String message = I18n.format("selectWorld.enterSeed");
-        for (IGuiEventListener widget : screen.getEventListeners()) {
+        String message = I18n.translate("selectWorld.enterSeed");
+        for (Element widget : screen.children()) {
             if (widget instanceof TextFieldWidget) {
                 TextFieldWidget field = (TextFieldWidget) widget;
                 if (field.getMessage().getString().equals(message)) {
@@ -317,7 +318,7 @@ public class ConfigScreen extends OverlayScreen {
         return null;
     }
 
-    public static ConfigScreen create(CreateWorldScreen parent, DimensionGeneratorSettings settings) {
+    public static ConfigScreen create(CreateWorldScreen parent, GeneratorOptions settings) {
         return new ConfigScreen(parent, settings);
     }
 }

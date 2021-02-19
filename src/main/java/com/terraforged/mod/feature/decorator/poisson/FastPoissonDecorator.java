@@ -29,8 +29,8 @@ import com.terraforged.engine.util.fastpoisson.FastPoissonContext;
 import com.terraforged.mod.api.feature.decorator.DecorationContext;
 import com.terraforged.mod.feature.decorator.ContextualDecorator;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.feature.WorldDecoratingHelper;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.decorator.DecoratorContext;
 
 import java.util.Random;
 import java.util.function.Consumer;
@@ -45,8 +45,8 @@ public abstract class FastPoissonDecorator extends ContextualDecorator<FastPoiss
     }
 
     @Override
-    protected Stream<BlockPos> getPositions(WorldDecoratingHelper helper, DecorationContext context, Random random, FastPoissonConfig config, BlockPos pos) {
-        IChunk chunk = context.getChunk();
+    protected Stream<BlockPos> getPositions(DecoratorContext helper, DecorationContext context, Random random, FastPoissonConfig config, BlockPos pos) {
+        Chunk chunk = context.getChunk();
         int seed = context.getGenerator().getContext().seed.root() + SEED_OFFSET;
         int chunkX = chunk.getPos().x;
         int chunkZ = chunk.getPos().z;

@@ -28,8 +28,8 @@ import com.terraforged.noise.util.NoiseUtil;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.state.Property;
-import net.minecraft.state.properties.BlockStateProperties;
+import net.minecraft.state.property.Properties;
+import net.minecraft.state.property.Property;
 
 public class LayerMaterial {
 
@@ -93,15 +93,15 @@ public class LayerMaterial {
     }
 
     private static int min(Property<Integer> property) {
-        return property.getAllowedValues().stream().min(Integer::compareTo).orElse(0);
+        return property.getValues().stream().min(Integer::compareTo).orElse(0);
     }
 
     private static int max(Property<Integer> property) {
-        return property.getAllowedValues().stream().max(Integer::compareTo).orElse(0);
+        return property.getValues().stream().max(Integer::compareTo).orElse(0);
     }
 
     public static LayerMaterial of(Block block) {
-        return of(block, BlockStateProperties.LAYERS_1_8);
+        return of(block, Properties.LAYERS);
     }
 
     public static LayerMaterial of(Block block, Property<Integer> property) {
@@ -117,7 +117,7 @@ public class LayerMaterial {
     }
 
     public static LayerMaterial of(BlockState layer) {
-        return of(layer, BlockStateProperties.LAYERS_1_8);
+        return of(layer, Properties.LAYERS);
     }
 
     public static LayerMaterial of(BlockState layer, Property<Integer> property) {
@@ -125,7 +125,7 @@ public class LayerMaterial {
     }
 
     public static LayerMaterial of(BlockState full, BlockState layer) {
-        return of(full, layer, BlockStateProperties.LAYERS_1_8);
+        return of(full, layer, Properties.LAYERS);
     }
 
     public static LayerMaterial of(BlockState full, BlockState layer, Property<Integer> property) {

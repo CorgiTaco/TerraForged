@@ -24,30 +24,29 @@
 
 package com.terraforged.mod.featuremanager.util.delegate;
 
-import net.minecraft.util.math.SectionPos;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureStart;
-import net.minecraft.world.server.ServerWorld;
-
 import java.util.stream.Stream;
+import net.minecraft.server.world.ServerWorld;
+import net.minecraft.structure.StructureStart;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.gen.feature.StructureFeature;
 
-public class SeedWorldDelegate extends WorldDelegate<ISeedReader> implements ISeedReader {
+public class SeedWorldDelegate extends WorldDelegate<StructureWorldAccess> implements StructureWorldAccess {
 
     private long seed;
 
-    public SeedWorldDelegate(ISeedReader world) {
+    public SeedWorldDelegate(StructureWorldAccess world) {
         super(world);
         seed = world.getSeed();
     }
 
     @Override
-    public ServerWorld getWorld() {
-        return delegate.getWorld();
+    public ServerWorld toServerWorld() {
+        return delegate.toServerWorld();
     }
 
     @Override
-    public void setDelegate(ISeedReader world) {
+    public void setDelegate(StructureWorldAccess world) {
         super.setDelegate(world);
         seed = world.getSeed();
     }
@@ -58,7 +57,7 @@ public class SeedWorldDelegate extends WorldDelegate<ISeedReader> implements ISe
     }
 
     @Override
-    public Stream<? extends StructureStart<?>> func_241827_a(SectionPos pos, Structure<?> structure) {
-        return delegate.func_241827_a(pos, structure);
+    public Stream<? extends StructureStart<?>> getStructures(ChunkSectionPos pos, StructureFeature<?> structure) {
+        return delegate.getStructures(pos, structure);
     }
 }

@@ -26,14 +26,14 @@ package com.terraforged.mod.client.gui;
 
 import com.terraforged.mod.chunk.settings.TerraSettings;
 import net.minecraft.util.registry.SimpleRegistry;
-import net.minecraft.world.Dimension;
-import net.minecraft.world.gen.settings.DimensionGeneratorSettings;
+import net.minecraft.world.dimension.DimensionOptions;
+import net.minecraft.world.gen.GeneratorOptions;
 
-public class TerraDimGenSettings extends DimensionGeneratorSettings {
+public class TerraDimGenSettings extends GeneratorOptions {
 
     public TerraSettings settings = new TerraSettings();
 
-    public TerraDimGenSettings(long seed, boolean generateFeatures, boolean bonusChest, SimpleRegistry<Dimension> dimensions) {
+    public TerraDimGenSettings(long seed, boolean generateFeatures, boolean bonusChest, SimpleRegistry<DimensionOptions> dimensions) {
         super(seed, generateFeatures, bonusChest, dimensions);
     }
 }

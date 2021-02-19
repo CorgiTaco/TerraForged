@@ -28,12 +28,12 @@ import com.terraforged.mod.featuremanager.FeatureManager;
 import com.terraforged.mod.featuremanager.data.DataManager;
 import com.terraforged.mod.featuremanager.template.feature.TemplateFeatureConfig;
 import com.terraforged.mod.featuremanager.template.type.FeatureTypes;
-import net.minecraft.util.ResourceLocation;
 import org.apache.logging.log4j.Marker;
 import org.apache.logging.log4j.MarkerManager;
 
 import java.util.HashMap;
 import java.util.Map;
+import net.minecraft.util.Identifier;
 
 public class TemplateManager {
 
@@ -41,9 +41,9 @@ public class TemplateManager {
 
     private static final TemplateManager instance = new TemplateManager();
 
-    private final Map<ResourceLocation, TemplateFeatureConfig> templates = new HashMap<>();
+    private final Map<Identifier, TemplateFeatureConfig> templates = new HashMap<>();
 
-    public synchronized TemplateFeatureConfig getTemplateConfig(ResourceLocation name) {
+    public synchronized TemplateFeatureConfig getTemplateConfig(Identifier name) {
         return templates.getOrDefault(name, TemplateFeatureConfig.NONE);
     }
 

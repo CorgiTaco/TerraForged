@@ -27,20 +27,20 @@ package com.terraforged.mod.api.material.state;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 public class DefaultState extends StateSupplier {
 
-    private final ResourceLocation name;
+    private final Identifier name;
 
-    private DefaultState(ResourceLocation name) {
+    private DefaultState(Identifier name) {
         this.name = name;
     }
 
     @Override
     public BlockState get() {
-        Block block = ForgeRegistries.BLOCKS.getValue(name);
+        Block block = Registry.BLOCK.get(name);
         if (block == null) {
             block = Blocks.AIR;
         }
@@ -48,10 +48,10 @@ public class DefaultState extends StateSupplier {
     }
 
     public static DefaultState of(String name) {
-        return of(new ResourceLocation(name));
+        return of(new Identifier(name));
     }
 
-    public static DefaultState of(ResourceLocation name) {
+    public static DefaultState of(Identifier name) {
         return new DefaultState(name);
     }
 }

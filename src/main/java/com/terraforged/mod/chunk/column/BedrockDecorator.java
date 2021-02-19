@@ -30,9 +30,9 @@ import com.terraforged.mod.api.material.state.States;
 import com.terraforged.mod.chunk.TerraContext;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.chunk.Chunk;
 
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -49,7 +49,7 @@ public class BedrockDecorator implements ColumnDecorator {
     }
 
     @Override
-    public void decorate(IChunk chunk, DecoratorContext context, int x, int y, int z) {
+    public void decorate(Chunk chunk, DecoratorContext context, int x, int y, int z) {
         if (variance <= 0) {
             fillDown(context, chunk, x, z, minDepth - 1, -1, material);
         } else {
@@ -58,9 +58,9 @@ public class BedrockDecorator implements ColumnDecorator {
     }
 
     private static BlockState getState(String name) {
-        ResourceLocation location = ResourceLocation.tryCreate(name);
-        if (location != null && ForgeRegistries.BLOCKS.containsKey(location)) {
-            Block block = ForgeRegistries.BLOCKS.getValue(location);
+        Identifier location = Identifier.tryParse(name);
+        if (location != null && Registry.BLOCK.containsId(location)) {
+            Block block = Registry.BLOCK.get(location);
             if (block != null) {
                 return block.getDefaultState();
             }

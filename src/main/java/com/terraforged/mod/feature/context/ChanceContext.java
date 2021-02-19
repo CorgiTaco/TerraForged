@@ -33,10 +33,10 @@ import com.terraforged.engine.world.heightmap.Levels;
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.chunk.fix.RegionDelegate;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.WorldGenRegion;
+import net.minecraft.world.ChunkRegion;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 import java.util.Random;
 
@@ -44,7 +44,7 @@ public class ChanceContext implements SafeCloseable {
 
     private static final ObjectPool<ChanceContext> pool = new ObjectPool<>(10, ChanceContext::new);
 
-    public IChunk chunk;
+    public Chunk chunk;
     public Levels levels;
     public ChunkReader reader;
     public Cell cell = Cell.empty();
@@ -94,12 +94,12 @@ public class ChanceContext implements SafeCloseable {
         return -1;
     }
 
-    public static Resource<ChanceContext> pooled(IWorld world, ChunkGenerator generator) {
+    public static Resource<ChanceContext> pooled(WorldAccess world, ChunkGenerator generator) {
         if (generator instanceof TFChunkGenerator && world instanceof RegionDelegate) {
             TFChunkGenerator terraGenerator = (TFChunkGenerator) generator;
             Levels levels = terraGenerator.getContext().levels;
-            WorldGenRegion region = ((RegionDelegate) world).getDelegate();
-            IChunk chunk = region.getChunk(region.getMainChunkX(), region.getMainChunkZ());
+            ChunkRegion region = ((RegionDelegate) world).getDelegate();
+            Chunk chunk = region.getChunk(region.getCenterChunkX(), region.getCenterChunkZ());
             Resource<ChanceContext> item = pool.get();
             item.get().chunk = chunk;
             item.get().levels = levels;

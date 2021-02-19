@@ -35,7 +35,7 @@ import com.terraforged.mod.material.Materials;
 import com.terraforged.noise.Module;
 import com.terraforged.noise.Source;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 
 import java.util.HashMap;

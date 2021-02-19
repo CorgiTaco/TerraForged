@@ -27,8 +27,10 @@ package com.terraforged.mod.feature.decorator;
 import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.mod.api.feature.decorator.DecorationContext;
 import com.terraforged.mod.feature.decorator.filter.FilterDecoratorConfig;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.feature.WorldDecoratingHelper;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.gen.decorator.DecoratorContext;
 
 import java.util.Random;
 import java.util.stream.Stream;
@@ -39,11 +41,11 @@ public class FilterDecorator extends ContextualDecorator<FilterDecoratorConfig> 
 
     private FilterDecorator() {
         super(FilterDecoratorConfig.CODEC);
-        setRegistryName(TerraForgedMod.MODID, "filter");
+        Registry.register(Registry.DECORATOR, new Identifier(TerraForgedMod.MODID, "filter"), this);
     }
 
     @Override
-    protected Stream<BlockPos> getPositions(WorldDecoratingHelper helper, DecorationContext context, Random random, FilterDecoratorConfig config, BlockPos pos) {
-        return config.placement.func_242876_a(helper, random, pos).filter(p -> config.filter.test(context, p));
+    protected Stream<BlockPos> getPositions(DecoratorContext helper, DecorationContext context, Random random, FilterDecoratorConfig config, BlockPos pos) {
+        return config.placement.getPositions(helper, random, pos).filter(p -> config.filter.test(context, p));
     }
 }

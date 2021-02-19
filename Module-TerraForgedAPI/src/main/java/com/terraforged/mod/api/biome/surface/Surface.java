@@ -27,20 +27,20 @@ package com.terraforged.mod.api.biome.surface;
 
 import com.terraforged.mod.api.biome.surface.builder.Combiner;
 import net.minecraft.block.BlockState;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public interface Surface {
 
     void buildSurface(int x, int z, int height, SurfaceContext ctx);
 
-    default void fill(int x, int z, int start, int end, SurfaceContext ctx, IChunk chunk, BlockState state) {
+    default void fill(int x, int z, int start, int end, SurfaceContext ctx, Chunk chunk, BlockState state) {
         if (start < end) {
             for (int y = start; y < end; y++) {
-                chunk.setBlockState(ctx.pos.setPos(x, y, z), state, false);
+                chunk.setBlockState(ctx.pos.set(x, y, z), state, false);
             }
         } else if (start > end) {
             for (int y = start; y > end; y--) {
-                chunk.setBlockState(ctx.pos.setPos(x, y, z), state, false);
+                chunk.setBlockState(ctx.pos.set(x, y, z), state, false);
             }
         }
     }

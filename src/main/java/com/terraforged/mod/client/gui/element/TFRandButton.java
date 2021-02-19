@@ -24,8 +24,8 @@
 
 package com.terraforged.mod.client.gui.element;
 
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.text.LiteralText;
 
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -35,14 +35,14 @@ public class TFRandButton extends TFButton {
     private final String name;
     private final String prefix;
     private final List<String> tooltip;
-    private final CompoundNBT container;
+    private final CompoundTag container;
 
     private int value;
     private final int min;
     private final int max;
     private Runnable callback = () -> {};
 
-    public TFRandButton(String name, CompoundNBT value) {
+    public TFRandButton(String name, CompoundTag value) {
         super(value.getString(name));
         this.name = name;
         this.container = value;
@@ -51,7 +51,7 @@ public class TFRandButton extends TFButton {
         this.tooltip = Element.getToolTip(name, value);
         this.min = getLimit(value, name, "limit_lower", Integer.MIN_VALUE);
         this.max = getLimit(value, name, "limit_upper", Integer.MAX_VALUE);
-        setMessage(new StringTextComponent(prefix + this.value));
+        setMessage(new LiteralText(prefix + this.value));
     }
 
     public TFRandButton callback(Runnable runnable) {
@@ -68,12 +68,12 @@ public class TFRandButton extends TFButton {
     public void onPress() {
         value = ThreadLocalRandom.current().nextInt(min, max);
         container.putInt(name, value);
-        setMessage(new StringTextComponent(prefix + this.value));
+        setMessage(new LiteralText(prefix + this.value));
         callback.run();
     }
 
-    private static int getLimit(CompoundNBT value, String name, String limitType, int defaultLimit) {
-        CompoundNBT meta = value.getCompound("#" + name);
+    private static int getLimit(CompoundTag value, String name, String limitType, int defaultLimit) {
+        CompoundTag meta = value.getCompound("#" + name);
         if (meta.contains(limitType)) {
             return meta.getInt(limitType);
         }

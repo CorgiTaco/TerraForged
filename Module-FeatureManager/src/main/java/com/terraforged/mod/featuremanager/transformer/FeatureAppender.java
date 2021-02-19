@@ -26,19 +26,19 @@ package com.terraforged.mod.featuremanager.transformer;
 
 import com.google.gson.JsonObject;
 import com.terraforged.engine.world.biome.map.BiomeContext;
-import net.minecraft.world.gen.GenerationStage;
+import net.minecraft.world.gen.GenerationStep;
 import net.minecraft.world.gen.feature.ConfiguredFeature;
 
 public class FeatureAppender extends FeatureInjector {
 
-    private final GenerationStage.Decoration stage;
+    private final GenerationStep.Feature stage;
 
-    public FeatureAppender(ConfiguredFeature<?, ?> feature, InjectionPosition type, GenerationStage.Decoration stage) {
+    public FeatureAppender(ConfiguredFeature<?, ?> feature, InjectionPosition type, GenerationStep.Feature stage) {
         super(feature, type);
         this.stage = stage;
     }
 
-    public GenerationStage.Decoration getStage() {
+    public GenerationStep.Feature getStage() {
         return stage;
     }
 
@@ -48,11 +48,11 @@ public class FeatureAppender extends FeatureInjector {
         parent.add(getType(), toJson(context));
     }
 
-    public static FeatureAppender head(GenerationStage.Decoration stage, ConfiguredFeature<?, ?> feature) {
+    public static FeatureAppender head(GenerationStep.Feature stage, ConfiguredFeature<?, ?> feature) {
         return new FeatureAppender(feature, InjectionPosition.HEAD, stage);
     }
 
-    public static FeatureAppender tail(GenerationStage.Decoration stage, ConfiguredFeature<?, ?> feature) {
+    public static FeatureAppender tail(GenerationStep.Feature stage, ConfiguredFeature<?, ?> feature) {
         return new FeatureAppender(feature, InjectionPosition.TAIL, stage);
     }
 }

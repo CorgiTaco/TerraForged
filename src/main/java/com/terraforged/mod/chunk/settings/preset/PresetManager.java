@@ -35,13 +35,14 @@ import com.terraforged.mod.config.ConfigManager;
 import com.terraforged.mod.util.DataUtils;
 import com.terraforged.mod.util.function.IOFunction;
 import com.terraforged.mod.util.function.IOSupplier;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraftforge.fml.ModList;
+import net.fabricmc.loader.api.FabricLoader;
+//import net.minecraftforge.fml.ModList;
 
 import javax.annotation.Nullable;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -200,7 +201,7 @@ public class PresetManager implements Iterable<Preset> {
     }
 
     private static void loadInternalPresets(List<Preset> presets) {
-        Path path = ModList.get().getModFileById(TerraForgedMod.MODID).getFile().getFilePath();
+        Path path = Paths.get( FabricLoader.getInstance().getConfigDir() + "/" + TerraForgedMod.MODID);
         if (Files.isDirectory(path)) {
             loadAll(() -> Files.walk(path), p -> toString(path.relativize(p)), Files::newInputStream, presets::add);
         } else {

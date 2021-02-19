@@ -27,11 +27,15 @@ package com.terraforged.mod.featuremanager.data;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import com.terraforged.mod.featuremanager.FeatureManager;
-import net.minecraft.resources.*;
-import net.minecraft.tags.ITag;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.registries.IForgeRegistry;
-import net.minecraftforge.registries.IForgeRegistryEntry;
+import com.terraforged.mod.server.IProvidersAdder;
+import net.minecraft.resource.ReloadableResourceManagerImpl;
+import net.minecraft.resource.Resource;
+import net.minecraft.resource.ResourceManager;
+import net.minecraft.resource.ResourcePackManager;
+import net.minecraft.resource.ResourcePackProfile;
+import net.minecraft.resource.ResourceType;
+import net.minecraft.tag.Tag;
+import net.minecraft.util.Identifier;
 
 import java.io.*;
 import java.util.HashSet;
@@ -46,10 +50,10 @@ public class DataManager implements AutoCloseable {
     public static final Predicate<String> NBT = s -> s.endsWith(".nbt");
     public static final Predicate<String> JSON = s -> s.endsWith(".json");
 
-    private final ResourcePackList packList;
-    private final IResourceManager resourceManager;
+    private final ResourcePackManager packList;
+    private final ResourceManager resourceManager;
 
-    public DataManager(IResourceManager resourceManager, ResourcePackList packList) {
+    public DataManager(ResourceManager resourceManager, ResourcePackManager packList) {
         this.resourceManager = resourceManager;
         this.packList = packList;
     }
@@ -59,15 +63,15 @@ public class DataManager implements AutoCloseable {
         packList.close();
     }
 
-    public IResource getResource(ResourceLocation location) throws IOException {
+    public Resource getResource(Identifier location) throws IOException {
         return resourceManager.getResource(location);
     }
 
     public void forEach(String path, Predicate<String> matcher, ResourceVisitor<InputStream> consumer) {
         FeatureManager.LOG.debug("Input path: {}", path);
-        for (ResourceLocation location : resourceManager.getAllResourceLocations(path, matcher)) {
+        for (Identifier location : resourceManager.findResources(path, matcher)) {
             FeatureManager.LOG.debug(" Location: {}", location);
-            try (IResource resource = getResource(location)) {
+            try (Resource resource = getResource(location)) {
                 if (resource == null) {
                     continue;
                 }
@@ -80,34 +84,34 @@ public class DataManager implements AutoCloseable {
         }
     }
 
-    public <T extends IForgeRegistryEntry<T>> void forEachTag(String type, List<ITag.INamedTag<T>> tags, IForgeRegistry<T> registry, BiConsumer<ITag<T>, Set<T>> setter) {
-        JsonParser parser = new JsonParser();
-        String tagPath = "tags/" + type + "/";
-
-        for (ITag.INamedTag<T> tag : tags) {
-            try {
-                Set<T> set = new HashSet<>();
-                ResourceLocation name = tag.getName();
-                String namespace = name.getNamespace();
-                String filepath = tagPath + name.getPath() + ".json";
-                ResourceLocation path = new ResourceLocation(namespace, filepath);
-
-                for (IResource resource : resourceManager.getAllResources(path)) {
-                    try (InputStream inputStream = resource.getInputStream()) {
-                        Reader reader = new BufferedReader(new InputStreamReader(inputStream));
-                        JsonElement element = parser.parse(reader);
-                        if (element.isJsonObject()) {
-                            TagLoader.loadTag(element.getAsJsonObject(), tag, registry, set);
-                        }
-                    }
-                }
-
-                setter.accept(tag, set);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    public <T extends Object> void forEachTag(String type, List<Tag.Identified<T>> tags, Object registry, BiConsumer<Tag<T>, Set<T>> setter) {
+//        JsonParser parser = new JsonParser();
+//        String tagPath = "tags/" + type + "/";
+//
+//        for (Tag.Identified<T> tag : tags) {
+//            try {
+//                Set<T> set = new HashSet<>();
+//                Identifier name = tag.getId();
+//                String namespace = name.getNamespace();
+//                String filepath = tagPath + name.getPath() + ".json";
+//                Identifier path = new Identifier(namespace, filepath);
+//
+//                for (Resource resource : resourceManager.getAllResources(path)) {
+//                    try (InputStream inputStream = resource.getInputStream()) {
+//                        Reader reader = new BufferedReader(new InputStreamReader(inputStream));
+//                        JsonElement element = parser.parse(reader);
+//                        if (element.isJsonObject()) {
+//                            TagLoader.loadTag(element.getAsJsonObject(), tag, registry, set);
+//                        }
+//                    }
+//                }
+//
+//                setter.accept(tag, set);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 
     public void forEachJson(String path, ResourceVisitor<JsonElement> consumer) {
         JsonParser parser = new JsonParser();
@@ -119,15 +123,15 @@ public class DataManager implements AutoCloseable {
     }
 
     public static DataManager of(File dir) {
-        SimpleReloadableResourceManager manager = new SimpleReloadableResourceManager(ResourcePackType.SERVER_DATA);
-        ResourcePackList packList = new ResourcePackList(ResourcePackInfo::new);
+        ReloadableResourceManagerImpl manager = new ReloadableResourceManagerImpl(ResourceType.SERVER_DATA);
+        ResourcePackManager packList = new ResourcePackManager(ResourcePackProfile::new);
 
-        packList.addPackFinder(new ModDataPackFinder());
+//        ((IProvidersAdder) packList).addPack(new ModDataPackFinder());
         // add global packs after mods so that they override
-        packList.addPackFinder(new FolderDataPackFinder(dir));
+        ((IProvidersAdder) packList).addPack(new FolderDataPackFinder(dir));
 
-        packList.reloadPacksFromFinders();
-        packList.getAllPacks().stream().map(ResourcePackInfo::getResourcePack).forEach(manager::addResourcePack);
+        packList.scanPacks();
+        packList.getProfiles().stream().map(ResourcePackProfile::createResourcePack).forEach(manager::addPack);
 
         return new DataManager(manager, packList);
     }

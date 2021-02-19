@@ -26,7 +26,7 @@ package com.terraforged.mod.api.biome.surface;
 
 import com.terraforged.mod.api.biome.surface.builder.Delegate;
 import com.terraforged.mod.biome.context.TFBiomeContext;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
 
 import java.util.HashMap;

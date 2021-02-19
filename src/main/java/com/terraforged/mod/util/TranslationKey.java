@@ -25,9 +25,9 @@
 package com.terraforged.mod.util;
 
 import com.terraforged.engine.util.NameUtil;
-import net.minecraft.client.resources.I18n;
-import net.minecraft.util.text.ITextComponent;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.resource.language.I18n;
+import net.minecraft.text.LiteralText;
+import net.minecraft.text.Text;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -56,19 +56,19 @@ public class TranslationKey {
     }
 
     public String get() {
-        if (I18n.hasKey(translationKey)) {
-            return I18n.format(translationKey);
+        if (I18n.hasTranslation(translationKey)) {
+            return I18n.translate(translationKey);
         }
         return defaultValue;
     }
 
-    public ITextComponent getText() {
-        return new StringTextComponent(get());
+    public Text getText() {
+        return new LiteralText(get());
     }
 
     public String get(Object... args) {
-        if (I18n.hasKey(translationKey)) {
-            return I18n.format(translationKey, args);
+        if (I18n.hasTranslation(translationKey)) {
+            return I18n.translate(translationKey, args);
         }
         return defaultValue;
     }

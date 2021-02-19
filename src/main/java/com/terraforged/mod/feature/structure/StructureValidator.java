@@ -28,13 +28,13 @@ import com.terraforged.mod.Log;
 import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.biome.provider.analyser.BiomeAnalyser;
 import com.terraforged.mod.chunk.settings.StructureSettings;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.gen.DimensionSettings;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
+import net.minecraft.world.gen.chunk.StructuresConfig;
+import net.minecraft.world.gen.feature.ConfiguredStructureFeature;
 import net.minecraft.world.gen.feature.StructureFeature;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.settings.DimensionStructuresSettings;
-import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -45,11 +45,11 @@ public class StructureValidator {
     private static final String REMOVED = "A third-party mod has removed structure [{}] from all overworld biomes so it cannot be generated!";
     private static final String UNREGISTERED = "Structure [{}] does not have any generation settings registered for it so it cannot be generated!";
 
-    public static void validateConfigs(DimensionSettings dimension, TFBiomeContext context, StructureSettings settings) {
+    public static void validateConfigs(ChunkGeneratorSettings dimension, TFBiomeContext context, StructureSettings settings) {
         Log.info("Validating user structure preferences...");
 
-        final DimensionStructuresSettings structuresSettings = dimension.getStructures();
-        final List<Structure<?>> activeStructures = getActiveStructures(context);
+        final StructuresConfig structuresSettings = dimension.getStructuresConfig();
+        final List<StructureFeature<?>> activeStructures = getActiveStructures(context);
         final Map<String, StructureSettings.StructureSeparation> userSettings = settings.getOrDefaultStructures();
 
         // Check for structures that have been removed from biomes when the user has it enabled
@@ -58,26 +58,26 @@ public class StructureValidator {
                 continue;
             }
 
-            ResourceLocation name = ResourceLocation.tryCreate(entry.getKey());
+            Identifier name = Identifier.tryParse(entry.getKey());
             if (name == null) {
                 continue;
             }
 
-            Structure<?> structure = ForgeRegistries.STRUCTURE_FEATURES.getValue(name);
-            if (structure != null && structuresSettings.func_236197_a_(structure) == null) {
+            StructureFeature<?> structure = Registry.STRUCTURE_FEATURE.get(name);
+            if (structure != null && structuresSettings.getForType(structure) == null) {
                 Log.info(REMOVED, name);
             }
         }
 
         // Check for mods removing strongholds from all biomes when the user has it enabled
-        if (!settings.stronghold.disabled && !activeStructures.contains(Structure.STRONGHOLD)) {
-            Log.info(REMOVED, Structure.STRONGHOLD.getRegistryName());
+        if (!settings.stronghold.disabled && !activeStructures.contains(StructureFeature.STRONGHOLD)) {
+            Log.info(REMOVED, Registry.STRUCTURE_FEATURE.getId(StructureFeature.STRONGHOLD));
         }
 
         // Check for structures that have been added to biomes without having registered generation settings for it
-        for (Structure<?> structure : activeStructures) {
-            if (structuresSettings.func_236197_a_(structure) == null) {
-                String name = Objects.toString(structure.getRegistryName());
+        for (StructureFeature<?> structure : activeStructures) {
+            if (structuresSettings.getForType(structure) == null) {
+                String name = Objects.toString(Registry.STRUCTURE_FEATURE.getId(structure));
                 StructureSettings.StructureSeparation userSetting = userSettings.get(name);
 
                 // Ignore if user has disabled it anyway
@@ -90,20 +90,21 @@ public class StructureValidator {
         }
     }
 
-    private static List<Structure<?>> getActiveStructures(TFBiomeContext context) {
-        final Set<Structure<?>> structures = new HashSet<>();
+    @SuppressWarnings("ConstantConditions")
+    private static List<StructureFeature<?>> getActiveStructures(TFBiomeContext context) {
+        final Set<StructureFeature<?>> structures = new HashSet<>();
         final Biome[] overworldBiomes = BiomeAnalyser.getOverworldBiomes(context);
 
         for (Biome biome : overworldBiomes) {
-            for (Supplier<StructureFeature<?, ?>> structureFeature : biome.getGenerationSettings().getStructures()) {
-                Structure<?> structure = structureFeature.get().field_236268_b_;
+            for (Supplier<ConfiguredStructureFeature<?, ?>> structureFeature : biome.getGenerationSettings().getStructureFeatures()) {
+                StructureFeature<?> structure = structureFeature.get().feature;
                 structures.add(structure);
             }
         }
 
         return structures.stream()
-                .filter(structure -> structure.getRegistryName() != null)
-                .sorted(Comparator.comparing(Structure::getRegistryName))
+                .filter(structure -> Registry.STRUCTURE_FEATURE.getId(structure) != null)
+                .sorted(Comparator.comparing(Registry.STRUCTURE_FEATURE::getId))
                 .collect(Collectors.toList());
     }
 }

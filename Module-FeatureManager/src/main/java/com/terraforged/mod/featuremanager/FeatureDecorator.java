@@ -26,53 +26,52 @@ package com.terraforged.mod.featuremanager;
 
 import com.terraforged.mod.featuremanager.biome.BiomeFeature;
 import com.terraforged.mod.featuremanager.biome.BiomeFeatures;
-import net.minecraft.util.SharedSeedRandom;
+import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.SectionPos;
-import net.minecraft.world.ISeedReader;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.world.StructureWorldAccess;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureManager;
-
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.ChunkRandom;
+import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.feature.StructureFeature;
 import java.util.List;
 
 public interface FeatureDecorator {
 
-    int FEATURE_STAGES = GenerationStage.Decoration.values().length;
+    int FEATURE_STAGES = GenerationStep.Feature.values().length;
 
     FeatureManager getFeatureManager();
 
-    default void decorate(ChunkGenerator generator, StructureManager manager, ISeedReader region, IChunk chunk, Biome biome, BlockPos pos) {
-        SharedSeedRandom random = new SharedSeedRandom();
-        long decorationSeed = random.setDecorationSeed(region.getSeed(), pos.getX(), pos.getZ());
+    default void decorate(ChunkGenerator generator, StructureAccessor manager, StructureWorldAccess region, Chunk chunk, Biome biome, BlockPos pos) {
+        ChunkRandom random = new ChunkRandom();
+        long decorationSeed = random.setPopulationSeed(region.getSeed(), pos.getX(), pos.getZ());
 
         BiomeFeatures biomeFeatures = getFeatureManager().getFeatures(biome);
         List<List<BiomeFeature>> stagedFeatures = biomeFeatures.getFeatures();
-        List<List<Structure<?>>> stagedStructures = biomeFeatures.getStructures();
+        List<List<StructureFeature<?>>> stagedStructures = biomeFeatures.getStructures();
 
         int chunkX = pos.getX() >> 4;
         int chunkZ = pos.getZ() >> 4;
         ChunkPos chunkPos = new ChunkPos(chunkX, chunkZ);
 
-        int startX = chunkPos.getXStart();
-        int startZ = chunkPos.getZStart();
-        MutableBoundingBox chunkBounds = new MutableBoundingBox(startX, startZ, startX + 15, startZ + 15);
+        int startX = chunkPos.getStartX();
+        int startZ = chunkPos.getStartZ();
+        BlockBox chunkBounds = new BlockBox(startX, startZ, startX + 15, startZ + 15);
 
         for (int stageIndex = 0; stageIndex < FEATURE_STAGES; stageIndex++) {
             int featureSeed = 0;
 
             if (stageIndex < stagedStructures.size()) {
-                List<Structure<?>> structures = stagedStructures.get(stageIndex);
+                List<StructureFeature<?>> structures = stagedStructures.get(stageIndex);
                 for (int structureIndex = 0; structureIndex < structures.size(); structureIndex++) {
-                    Structure<?> structure = structures.get(structureIndex);
-                    random.setFeatureSeed(decorationSeed, featureSeed++, stageIndex);
+                    StructureFeature<?> structure = structures.get(structureIndex);
+                    random.setDecoratorSeed(decorationSeed, featureSeed++, stageIndex);
                     try {
-                        manager.func_235011_a_(SectionPos.from(pos), structure).forEach(start -> start.func_230366_a_(
+                        manager.getStructuresWithChildren(ChunkSectionPos.from(pos), structure).forEach(start -> start.generateStructure(
                                 region,
                                 manager,
                                 generator,
@@ -81,7 +80,7 @@ public interface FeatureDecorator {
                                 chunkPos
                         ));
                     } catch (Throwable t) {
-                        handle("structure", structure.getStructureName(), t);
+                        handle("structure", structure.getName(), t);
                     }
                 }
             }
@@ -90,7 +89,7 @@ public interface FeatureDecorator {
                 List<BiomeFeature> features = stagedFeatures.get(stageIndex);
                 for (int featureIndex = 0; featureIndex < features.size(); featureIndex++) {
                     BiomeFeature feature = features.get(featureIndex);
-                    random.setFeatureSeed(decorationSeed, featureSeed++, stageIndex);
+                    random.setDecoratorSeed(decorationSeed, featureSeed++, stageIndex);
                     if (feature.getPredicate().test(chunk, biome)) {
                         try {
                             feature.getFeature().generate(region, generator, random, pos);

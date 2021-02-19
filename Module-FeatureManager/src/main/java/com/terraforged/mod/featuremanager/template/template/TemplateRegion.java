@@ -25,7 +25,7 @@
 package com.terraforged.mod.featuremanager.template.template;
 
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 
 public class TemplateRegion {
 
@@ -45,11 +45,11 @@ public class TemplateRegion {
         return this;
     }
 
-    public boolean containsBlock(IWorld world, BlockPos pos) {
+    public boolean containsBlock(WorldAccess world, BlockPos pos) {
         return containsChunk(world, pos.getX() >> 4, pos.getZ() >> 4);
     }
 
-    public boolean containsChunk(IWorld world, int cx, int cz) {
+    public boolean containsChunk(WorldAccess world, int cx, int cz) {
         return cx >= minX && cx <= maxX && cz >= minZ && cz <= maxZ;
     }
 }

@@ -96,7 +96,7 @@ public class BriceSurface implements MaskedSurface, Stratum.Visitor<BlockState, 
             return;
         }
 
-        ctx.pos.setPos(x, height, z);
+        ctx.pos.set(x, height, z);
         stratas.getStrata(ctx.cell.biomeRegionId).downwards(x, top, z, ctx.depthBuffer.get(), ctx, this);
     }
 

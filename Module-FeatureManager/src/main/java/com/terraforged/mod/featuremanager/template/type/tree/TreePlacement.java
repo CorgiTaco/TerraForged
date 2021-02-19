@@ -28,27 +28,26 @@ import com.terraforged.mod.featuremanager.template.BlockUtils;
 import com.terraforged.mod.featuremanager.template.feature.Placement;
 import com.terraforged.mod.featuremanager.template.template.Dimensions;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
-
+import net.minecraft.world.WorldAccess;
 import java.util.function.BiPredicate;
 
 public class TreePlacement implements Placement {
 
     public static final Placement PLACEMENT = new TreePlacement();
-    private static final BiPredicate<IWorld, BlockPos> OVERHEAD = BlockUtils::canTreeReplace;
+    private static final BiPredicate<WorldAccess, BlockPos> OVERHEAD = BlockUtils::canTreeReplace;
 
     private TreePlacement() {
 
     }
 
     @Override
-    public boolean canPlaceAt(IWorld world, BlockPos pos, Dimensions dimensions) {
+    public boolean canPlaceAt(WorldAccess world, BlockPos pos, Dimensions dimensions) {
         return BlockUtils.isSoil(world, pos.down())
                 && BlockUtils.isClearOverhead(world, pos, dimensions.getSizeY(), TreePlacement.OVERHEAD);
     }
 
     @Override
-    public boolean canReplaceAt(IWorld world, BlockPos pos) {
+    public boolean canReplaceAt(WorldAccess world, BlockPos pos) {
         return BlockUtils.canTreeReplace(world, pos);
     }
 }

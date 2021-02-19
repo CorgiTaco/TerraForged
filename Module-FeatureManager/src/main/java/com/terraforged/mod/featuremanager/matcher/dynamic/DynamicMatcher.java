@@ -46,16 +46,16 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         }
 
         // note SingleRandomFeature & SingleRandomFeatureConfig names a mixed up
-        if (feature.config instanceof SingleRandomFeature) {
-            return single((SingleRandomFeature) feature.config);
+        if (feature.config instanceof SimpleRandomFeatureConfig) {
+            return single((SimpleRandomFeatureConfig) feature.config);
         }
 
-        if (feature.config instanceof TwoFeatureChoiceConfig) {
-            return twoChoice((TwoFeatureChoiceConfig) feature.config);
+        if (feature.config instanceof RandomBooleanFeatureConfig) {
+            return twoChoice((RandomBooleanFeatureConfig) feature.config);
         }
 
-        if (feature.config instanceof MultipleRandomFeatureConfig) {
-            return multi((MultipleRandomFeatureConfig) feature.config);
+        if (feature.config instanceof RandomFeatureConfig) {
+            return multi((RandomFeatureConfig) feature.config);
         }
 
         return predicate.test(feature);
@@ -65,7 +65,7 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return test(config.feature.get());
     }
 
-    private boolean single(SingleRandomFeature config) {
+    private boolean single(SimpleRandomFeatureConfig config) {
         for (Supplier<ConfiguredFeature<?, ?>> feature : config.features) {
             if (test(feature.get())) {
                 return true;
@@ -74,15 +74,15 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return false;
     }
 
-    private boolean twoChoice(TwoFeatureChoiceConfig config) {
-        if (test(config.field_227285_a_.get())) {
+    private boolean twoChoice(RandomBooleanFeatureConfig config) {
+        if (test(config.featureTrue.get())) {
             return true;
         }
-        return test(config.field_227286_b_.get());
+        return test(config.featureFalse.get());
     }
 
-    private boolean multi(MultipleRandomFeatureConfig config) {
-        for (ConfiguredRandomFeatureList feature : config.features) {
+    private boolean multi(RandomFeatureConfig config) {
+        for (RandomFeatureEntry feature : config.features) {
             if (test(feature.feature.get())) {
                 return true;
             }
@@ -110,15 +110,15 @@ public class DynamicMatcher implements Predicate<ConfiguredFeature<?, ?>> {
         return DynamicMatcher.feature(type::isInstance);
     }
 
-    public static DynamicMatcher config(Predicate<IFeatureConfig> predicate) {
+    public static DynamicMatcher config(Predicate<FeatureConfig> predicate) {
         return DynamicMatcher.of(f -> predicate.test(f.config));
     }
 
-    public static DynamicMatcher config(IFeatureConfig config) {
+    public static DynamicMatcher config(FeatureConfig config) {
         return DynamicMatcher.of(f -> f.config == config);
     }
 
-    public static DynamicMatcher config(Class<? extends IFeatureConfig> type) {
+    public static DynamicMatcher config(Class<? extends FeatureConfig> type) {
         return DynamicMatcher.config(type::isInstance);
     }
 }

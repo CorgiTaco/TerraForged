@@ -26,12 +26,12 @@ package com.terraforged.mod.api.chunk.column;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.fluid.FluidState;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
+import net.minecraft.world.BlockView;
 
-public class BlockColumn implements IBlockReader {
+public class BlockColumn implements BlockView {
 
     private int height = 0;
     private BlockState[] column = null;
@@ -49,7 +49,7 @@ public class BlockColumn implements IBlockReader {
     }
 
     @Override
-    public TileEntity getTileEntity(BlockPos pos) {
+    public BlockEntity getBlockEntity(BlockPos pos) {
         return null;
     }
 

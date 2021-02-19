@@ -42,19 +42,19 @@ import com.terraforged.mod.chunk.TerraContext;
 import com.terraforged.mod.chunk.settings.TerraSettings;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
 import com.terraforged.noise.util.NoiseUtil;
-import net.minecraft.util.RegistryKey;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeManager;
-import net.minecraft.world.biome.ColumnFuzzedBiomeMagnifier;
-import net.minecraft.world.biome.provider.BiomeProvider;
+import net.minecraft.world.biome.source.BiomeAccess;
+import net.minecraft.world.biome.source.BiomeSource;
+import net.minecraft.world.biome.source.HorizontalVoronoiBiomeAccessType;
 
 import javax.annotation.Nullable;
 import java.util.Random;
 import java.util.Set;
 import java.util.function.Predicate;
 
-public class TFBiomeProvider extends BiomeProvider {
+public class TFBiomeProvider extends BiomeSource {
 
     public static final Codec<TFBiomeProvider> CODEC = Codecs.create(TFBiomeProvider::encode, TFBiomeProvider::decode);
 
@@ -73,12 +73,12 @@ public class TFBiomeProvider extends BiomeProvider {
     }
 
     @Override
-    protected Codec<TFBiomeProvider> getBiomeProviderCodec() {
+    protected Codec<TFBiomeProvider> getCodec() {
         return CODEC;
     }
 
     @Override
-    public Biome getNoiseBiome(int x, int y, int z) {
+    public Biome getBiomeForNoiseGen(int x, int y, int z) {
         x = (x << 2);
         z = (z << 2);
         try (Resource<Cell> cell = lookupPos(x, z)) {
@@ -87,7 +87,7 @@ public class TFBiomeProvider extends BiomeProvider {
     }
 
     @Override
-    public TFBiomeProvider getBiomeProvider(long seed) {
+    public TFBiomeProvider withSeed(long seed) {
         Log.debug("Creating seeded biome provider: {}", seed);
         TerraSettings settings = context.terraSettings;
         settings.world.seed = seed;
@@ -95,7 +95,7 @@ public class TFBiomeProvider extends BiomeProvider {
     }
 
     @Override
-    public Set<Biome> getBiomes(int centerX, int centerY, int centerZ, int radius) {
+    public Set<Biome> getBiomesInArea(int centerX, int centerY, int centerZ, int radius) {
         // search smaller radius to encourage more attempts to generate structures like mansions
         radius = Math.max(8, NoiseUtil.round(biomeSearchModifier * radius));
         int minX = centerX - radius;
@@ -117,7 +117,7 @@ public class TFBiomeProvider extends BiomeProvider {
 
     @Override
     @Nullable
-    public BlockPos findBiomePosition(int centerX, int centerY, int centerZ, int radius, int increment, Predicate<Biome> biomes, Random random, boolean centerOutSearch) {
+    public BlockPos locateBiome(int centerX, int centerY, int centerZ, int radius, int increment, Predicate<Biome> biomes, Random random, boolean centerOutSearch) {
         // convert block coords to biome coords
         int biomeRadius = radius >> 2;
         int biomeCenterX = centerX >> 2;
@@ -163,7 +163,7 @@ public class TFBiomeProvider extends BiomeProvider {
                             pos = new BlockPos.Mutable(x, centerY, z);
                         } else if (random.nextInt(count + 1) == 0) {
                             // as the match count increases the chance of getting a zero reduces
-                            pos.setPos(x, centerY, z);
+                            pos.set(x, centerY, z);
                         }
 
                         count++;
@@ -198,8 +198,8 @@ public class TFBiomeProvider extends BiomeProvider {
         return getBiome(cell, x, z);
     }
 
-    public Biome getSurfaceBiome(int x, int z, BiomeManager.IBiomeReader reader) {
-        return ColumnFuzzedBiomeMagnifier.INSTANCE.getBiome(seed, x, 0, z, reader);
+    public Biome getSurfaceBiome(int x, int z, BiomeAccess.Storage reader) {
+        return HorizontalVoronoiBiomeAccessType.INSTANCE.getBiome(seed, x, 0, z, reader);
     }
 
     public WorldLookup getWorldLookup() {

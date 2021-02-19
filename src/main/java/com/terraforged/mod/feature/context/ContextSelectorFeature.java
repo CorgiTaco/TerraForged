@@ -26,9 +26,11 @@ package com.terraforged.mod.feature.context;
 
 import com.terraforged.engine.concurrent.Resource;
 import com.terraforged.mod.TerraForgedMod;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 import net.minecraft.world.gen.feature.Feature;
 
 import java.util.Random;
@@ -39,11 +41,11 @@ public class ContextSelectorFeature extends Feature<ContextSelectorConfig> {
 
     public ContextSelectorFeature() {
         super(ContextSelectorConfig.CODEC);
-        setRegistryName(TerraForgedMod.MODID, "context_selector");
+        Registry.register(Registry.FEATURE,new Identifier(TerraForgedMod.MODID, "context_selector"), this);
     }
 
     @Override
-    public boolean generate(ISeedReader world, ChunkGenerator generator, Random random, BlockPos pos, ContextSelectorConfig config) {
+    public boolean generate(StructureWorldAccess world, ChunkGenerator generator, Random random, BlockPos pos, ContextSelectorConfig config) {
         try (Resource<ChanceContext> item = ChanceContext.pooled(world, generator)) {
             if (item == null) {
                 return false;

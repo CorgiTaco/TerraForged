@@ -25,23 +25,22 @@
 package com.terraforged.mod.featuremanager.template;
 
 import it.unimi.dsi.fastutil.longs.LongSet;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.feature.structure.Structure;
-
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.GenerationStep;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 public class StructureUtils {
 
-    public static final List<Structure<?>> SURFACE_STRUCTURES = Structure.NAME_STRUCTURE_BIMAP.values().stream()
-            .filter(structure -> structure.getDecorationStage() == GenerationStage.Decoration.SURFACE_STRUCTURES)
+    public static final List<StructureFeature<?>> SURFACE_STRUCTURES = StructureFeature.STRUCTURES.values().stream()
+            .filter(structure -> structure.getGenerationStep() == GenerationStep.Feature.SURFACE_STRUCTURES)
             .collect(Collectors.toList());
 
-    public static boolean hasOvergroundStructure(IChunk chunk) {
-        Map<Structure<?>, LongSet> references = chunk.getStructureReferences();
-        for (Structure<?> structure : SURFACE_STRUCTURES) {
+    public static boolean hasOvergroundStructure(Chunk chunk) {
+        Map<StructureFeature<?>, LongSet> references = chunk.getStructureReferences();
+        for (StructureFeature<?> structure : SURFACE_STRUCTURES) {
             LongSet refs = references.get(structure);
             if (refs != null && refs.size() > 0) {
                 return true;
@@ -50,8 +49,8 @@ public class StructureUtils {
         return false;
     }
 
-    public static boolean hasStructure(IChunk chunk, Structure<?> structure) {
-        LongSet refs = chunk.getStructureReferences().get(structure.getStructureName());
+    public static boolean hasStructure(Chunk chunk, StructureFeature<?> structure) {
+        LongSet refs = chunk.getStructureReferences().get(structure.getName());
         return refs != null && refs.size() > 0;
     }
 }

@@ -24,10 +24,10 @@
 
 package com.terraforged.mod.featuremanager.template.template;
 
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
+import net.minecraft.util.math.Vec3i;
 
 public class BakedDimensions extends BakedTransform<Dimensions> {
 
@@ -36,13 +36,13 @@ public class BakedDimensions extends BakedTransform<Dimensions> {
     }
 
     @Override
-    protected Dimensions apply(Mirror mirror, Rotation rotation, Dimensions value) {
-        Vector3i min = Template.transform(value.min, mirror, rotation);
-        Vector3i max = Template.transform(value.max, mirror, rotation);
+    protected Dimensions apply(BlockMirror mirror, BlockRotation rotation, Dimensions value) {
+        Vec3i min = Template.transform(value.min, mirror, rotation);
+        Vec3i max = Template.transform(value.max, mirror, rotation);
         return compile(min, max);
     }
 
-    public static Dimensions compile(Vector3i min, Vector3i max) {
+    public static Dimensions compile(Vec3i min, Vec3i max) {
         int minX = Math.min(min.getX(), max.getX());
         int minY = Math.min(min.getY(), max.getY());
         int minZ = Math.min(min.getZ(), max.getZ());

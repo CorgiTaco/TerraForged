@@ -31,7 +31,7 @@ import com.terraforged.mod.api.material.state.States;
 import com.terraforged.noise.Module;
 import com.terraforged.noise.Source;
 import net.minecraft.block.BlockState;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.Heightmap;
 
 public class ForestSurface implements Surface {
 
@@ -43,9 +43,9 @@ public class ForestSurface implements Surface {
 
     @Override
     public void buildSurface(int x, int z, int height, SurfaceContext ctx) {
-        if (ctx.buffer.getTopBlockY(Heightmap.Type.OCEAN_FLOOR_WG, x, z) == height) {
+        if (ctx.buffer.sampleHeightmap(Heightmap.Type.OCEAN_FLOOR_WG, x, z) == height) {
             BlockState state = getMaterial(x, z);
-            ctx.buffer.setBlockState(ctx.pos.setPos(x, height, z), state, false);
+            ctx.buffer.setBlockState(ctx.pos.set(x, height, z), state, false);
         }
     }
 

@@ -28,22 +28,21 @@ import com.google.gson.JsonElement;
 import com.mojang.serialization.JsonOps;
 import com.terraforged.mod.featuremanager.template.decorator.Decorator;
 import com.terraforged.mod.featuremanager.util.codec.CodecHelper;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
-import net.minecraft.world.ISeedReader;
-
+import net.minecraft.world.StructureWorldAccess;
 import java.util.Optional;
 
 public class TreeDecoratorFactory implements Decorator.Factory<TreeDecoratorBuffer> {
 
     @Override
-    public TreeDecoratorBuffer wrap(ISeedReader world) {
+    public TreeDecoratorBuffer wrap(StructureWorldAccess world) {
         return new TreeDecoratorBuffer(world);
     }
 
     @Override
-    public Optional<Decorator<TreeDecoratorBuffer>> parse(ResourceLocation name, JsonElement config) {
-        return Registry.TREE_DECORATOR_TYPE.getOptional(name)
+    public Optional<Decorator<TreeDecoratorBuffer>> parse(Identifier name, JsonElement config) {
+        return Registry.TREE_DECORATOR_TYPE.getOrEmpty(name)
                 .map(type -> CodecHelper.treeDecorator(type, config, JsonOps.INSTANCE))
                 .map(TreeDecorator::new);
     }

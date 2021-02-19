@@ -41,7 +41,7 @@ import com.terraforged.noise.util.NoiseUtil;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.Heightmap;
 
 public class DunesSurface implements MaskedSurface {
 
@@ -68,7 +68,7 @@ public class DunesSurface implements MaskedSurface {
     @Override
     public void buildSurface(int x, int z, int surface, float mask, SurfaceContext ctx) {
         float value = module.getValue(x, z) * mask;
-        float baseHeight = ctx.chunk.getTopBlockY(Heightmap.Type.WORLD_SURFACE_WG, x & 15, z & 15);
+        float baseHeight = ctx.chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE_WG, x & 15, z & 15);
         float duneHeight = baseHeight + value * maxHeight;
         int duneBase = (int) baseHeight;
         int duneTop = (int) duneHeight + 1;
@@ -87,7 +87,7 @@ public class DunesSurface implements MaskedSurface {
         float depth = material.getDepth(duneHeight);
         int levels = material.getLevel(depth);
         BlockState top = material.getState(levels);
-        ctx.chunk.setBlockState(pos.setPos(x, duneTop, z), top, false);
+        ctx.chunk.setBlockState(pos.set(x, duneTop, z), top, false);
     }
 
     public static Surface create(TerraContext context, TFBiomeProvider provider) {

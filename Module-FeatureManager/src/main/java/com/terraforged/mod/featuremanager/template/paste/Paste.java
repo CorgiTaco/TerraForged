@@ -25,12 +25,12 @@
 package com.terraforged.mod.featuremanager.template.paste;
 
 import com.terraforged.mod.featuremanager.template.feature.Placement;
-import net.minecraft.util.Mirror;
-import net.minecraft.util.Rotation;
+import net.minecraft.util.BlockMirror;
+import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.world.WorldAccess;
 
 public interface Paste {
 
-    boolean apply(IWorld world, BlockPos origin, Mirror mirror, Rotation rotation, Placement placement, PasteConfig config);
+    boolean apply(WorldAccess world, BlockPos origin, BlockMirror mirror, BlockRotation rotation, Placement placement, PasteConfig config);
 }

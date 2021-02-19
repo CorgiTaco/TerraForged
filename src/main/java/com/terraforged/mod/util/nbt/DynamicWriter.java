@@ -32,8 +32,8 @@ import com.mojang.serialization.RecordBuilder;
 import com.terraforged.engine.serialization.serializer.AbstractWriter;
 import com.terraforged.engine.serialization.serializer.Serializer;
 import com.terraforged.mod.featuremanager.util.codec.CodecException;
-import net.minecraft.nbt.INBT;
-import net.minecraft.nbt.NBTDynamicOps;
+import net.minecraft.nbt.NbtOps;
+import net.minecraft.nbt.Tag;
 
 public class DynamicWriter<T> extends AbstractWriter<T, RecordBuilder<T>, ListBuilder<T>, DynamicWriter<T>> {
 
@@ -112,8 +112,8 @@ public class DynamicWriter<T> extends AbstractWriter<T, RecordBuilder<T>, ListBu
         return new DynamicWriter<>(JsonOps.INSTANCE);
     }
 
-    public static DynamicWriter<INBT> nbt() {
-        return new DynamicWriter<>(NBTDynamicOps.INSTANCE);
+    public static DynamicWriter<Tag> nbt() {
+        return new DynamicWriter<>(NbtOps.INSTANCE);
     }
 
     public static <T> DynamicWriter<T> of(DynamicOps<T> ops) {

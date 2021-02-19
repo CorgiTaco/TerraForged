@@ -24,9 +24,9 @@
 
 package com.terraforged.mod.util;
 
-import net.minecraft.crash.ReportedException;
+import net.minecraft.Bootstrap;
 import net.minecraft.util.Util;
-import net.minecraft.util.registry.Bootstrap;
+import net.minecraft.util.crash.CrashException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -71,14 +71,14 @@ public class ExecutorUtils {
     }
 
     private static void printException(Thread thread, Throwable throwable) {
-        Util.pauseDevMode(throwable);
+        Util.throwOrPause(throwable);
 
         if (throwable instanceof CompletionException) {
             throwable = throwable.getCause();
         }
 
-        if (throwable instanceof ReportedException) {
-            Bootstrap.printToSYSOUT(((ReportedException)throwable).getCrashReport().getCompleteReport());
+        if (throwable instanceof CrashException) {
+            Bootstrap.println(((CrashException)throwable).getReport().asString());
             System.exit(-1);
         }
 

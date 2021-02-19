@@ -25,15 +25,14 @@
 package com.terraforged.mod.featuremanager.util;
 
 import net.minecraft.block.BlockState;
+import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.Fluids;
-import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.IBlockReader;
-
+import net.minecraft.world.BlockView;
 import javax.annotation.Nullable;
 
-public class BlockReader implements IBlockReader {
+public class BlockReader implements BlockView {
 
     private BlockState state;
 
@@ -44,7 +43,7 @@ public class BlockReader implements IBlockReader {
 
     @Nullable
     @Override
-    public TileEntity getTileEntity(BlockPos pos) {
+    public BlockEntity getBlockEntity(BlockPos pos) {
         return null;
     }
 

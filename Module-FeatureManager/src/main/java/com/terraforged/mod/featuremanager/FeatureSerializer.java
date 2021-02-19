@@ -41,11 +41,11 @@ public class FeatureSerializer {
     public static final Marker MARKER = MarkerManager.getMarker("Serializer");
 
     public static JsonElement serialize(ConfiguredFeature<?, ?> feature) {
-        return Codecs.encode(ConfiguredFeature.field_242763_a, feature);
+        return Codecs.encode(ConfiguredFeature.CODEC, feature);
     }
 
     public static ConfiguredFeature<?, ?> deserializeUnchecked(JsonElement element) {
-        return Codecs.decode(ConfiguredFeature.field_242763_a, element).orElseThrow(EncoderException::new);
+        return Codecs.decode(ConfiguredFeature.CODEC, element).orElseThrow(EncoderException::new);
     }
 
     public static Optional<ConfiguredFeature<?, ?>> deserialize(JsonElement element) {
@@ -57,7 +57,7 @@ public class FeatureSerializer {
     }
 
     public static <T> T encode(ConfiguredFeature<?, ?> feature, DynamicOps<T> ops) {
-        return Codecs.encodeAndGet(ConfiguredFeature.field_242763_a, feature, ops);
+        return Codecs.encodeAndGet(ConfiguredFeature.CODEC, feature, ops);
     }
 
     public static <T> Optional<ConfiguredFeature<?, ?>> decode(OptionalDynamic<T> dynamic) {
@@ -65,6 +65,6 @@ public class FeatureSerializer {
     }
 
     public static <T> Optional<ConfiguredFeature<?, ?>> decode(Dynamic<T> dynamic) {
-        return Codecs.decode(ConfiguredFeature.field_242763_a, dynamic.getValue(), dynamic.getOps());
+        return Codecs.decode(ConfiguredFeature.CODEC, dynamic.getValue(), dynamic.getOps());
     }
 }

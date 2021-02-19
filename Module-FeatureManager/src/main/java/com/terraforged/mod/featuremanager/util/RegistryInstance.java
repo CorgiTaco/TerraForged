@@ -24,11 +24,10 @@
 
 package com.terraforged.mod.featuremanager.util;
 
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.DynamicRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.DynamicRegistryManager;
 import net.minecraft.util.registry.Registry;
-import org.jline.utils.Log;
+import net.minecraft.util.registry.RegistryKey;
 
 import java.util.*;
 
@@ -40,12 +39,11 @@ public class RegistryInstance<T> implements Iterable<T>, Comparator<T> {
     public RegistryInstance(Registry<T> registry) {
         this.registry = registry;
         for (T t : registry) {
-            Log.trace("- {}", t);
         }
     }
 
-    public RegistryInstance(DynamicRegistries registries, RegistryKey<? extends Registry<T>> key) {
-        this(registries.getRegistry(key));
+    public RegistryInstance(DynamicRegistryManager registries, RegistryKey<? extends Registry<T>> key) {
+        this(registries.get(key));
     }
 
     public void addRemap(T in, T out) {
@@ -60,48 +58,48 @@ public class RegistryInstance<T> implements Iterable<T>, Comparator<T> {
         return registry;
     }
 
-    public Optional<T> get(ResourceLocation name) {
-        return registry.getOptional(name);
+    public Optional<T> get(Identifier name) {
+        return registry.getOrEmpty(name);
     }
 
     public T get(int id) {
-        return registry.getByValue(id);
+        return registry.get(id);
     }
 
     public T get(RegistryKey<T> key) {
-        return registry.getValueForKey(key);
+        return registry.get(key);
     }
 
-    public T mustGet(ResourceLocation name) {
-        return registry.getOrDefault(name);
+    public T mustGet(Identifier name) {
+        return registry.get(name);
     }
 
     public RegistryKey<T> getKey(T t) {
-        return registry.getOptionalKey(t).orElse(null);
+        return registry.getKey(t).orElse(null);
     }
 
-    public ResourceLocation getRegistryName(T t) {
-        return registry.getKey(t);
-    }
-
-    public int getId(T t) {
+    public Identifier getRegistryName(T t) {
         return registry.getId(t);
     }
 
+    public int getId(T t) {
+        return registry.getRawId(t);
+    }
+
     public int getId(RegistryKey<T> key) {
-        return registry.getId(get(key));
+        return registry.getRawId(get(key));
     }
 
     public String getName(T t) {
-        return String.valueOf(registry.getKey(t));
+        return String.valueOf(registry.getId(t));
     }
 
     public String getName(int id) {
-        return String.valueOf(registry.getKey(get(id)));
+        return String.valueOf(registry.getId(get(id)));
     }
 
-    public boolean contains(ResourceLocation name) {
-       return registry.keySet().contains(name);
+    public boolean contains(Identifier name) {
+       return registry.getIds().contains(name);
     }
 
     @Override
@@ -111,8 +109,8 @@ public class RegistryInstance<T> implements Iterable<T>, Comparator<T> {
 
     @Override
     public int compare(T o1, T o2) {
-        ResourceLocation k1 = registry.getKey(o1);
-        ResourceLocation k2 = registry.getKey(o2);
+        Identifier k1 = registry.getId(o1);
+        Identifier k2 = registry.getId(o2);
         if (k1 == null || k2 == null) {
             return 0;
         }

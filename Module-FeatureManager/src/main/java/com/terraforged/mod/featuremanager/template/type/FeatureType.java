@@ -27,17 +27,16 @@ package com.terraforged.mod.featuremanager.template.type;
 import com.terraforged.mod.featuremanager.matcher.feature.FeatureMatcher;
 import com.terraforged.mod.featuremanager.template.decorator.Decorator;
 import com.terraforged.mod.featuremanager.template.feature.Placement;
-import net.minecraft.util.ResourceLocation;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minecraft.util.Identifier;
 
 public class FeatureType {
 
     private final String name;
     private final Placement placement;
     private final Decorator.Factory<?> decorator;
-    private final List<ResourceLocation> templates = new ArrayList<>();
+    private final List<Identifier> templates = new ArrayList<>();
 
     public FeatureType(String name, Placement placement, Decorator.Factory<?> decorator) {
         this.name = name;
@@ -57,7 +56,7 @@ public class FeatureType {
         return decorator;
     }
 
-    public synchronized void register(ResourceLocation template) {
+    public synchronized void register(Identifier template) {
         templates.add(template);
     }
 
@@ -72,7 +71,7 @@ public class FeatureType {
 
     public FeatureMatcher matcher() {
         FeatureMatcher.Builder builder = FeatureMatcher.builder();
-        for (ResourceLocation template : templates) {
+        for (Identifier template : templates) {
             builder.or(template);
         }
         return builder.build();

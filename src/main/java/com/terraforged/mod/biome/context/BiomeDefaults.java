@@ -28,9 +28,9 @@ import com.terraforged.engine.world.biome.map.BiomeContext;
 import com.terraforged.engine.world.biome.map.defaults.DefaultBiomes;
 import com.terraforged.engine.world.biome.map.defaults.FallbackBiomes;
 import com.terraforged.mod.biome.ModBiomes;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.BiomeKeys;
 
 public class BiomeDefaults implements BiomeContext.Defaults<RegistryKey<Biome>> {
 
@@ -59,13 +59,13 @@ public class BiomeDefaults implements BiomeContext.Defaults<RegistryKey<Biome>> 
     @Override
     public FallbackBiomes<RegistryKey<Biome>> getFallbacks() {
         return new FallbackBiomes<>(
-                Biomes.RIVER,
+                BiomeKeys.RIVER,
                 ModBiomes.LAKE,
-                Biomes.BEACH,
-                Biomes.OCEAN,
-                Biomes.DEEP_OCEAN,
-                Biomes.SWAMP,
-                Biomes.PLAINS
+                BiomeKeys.BEACH,
+                BiomeKeys.OCEAN,
+                BiomeKeys.DEEP_OCEAN,
+                BiomeKeys.SWAMP,
+                BiomeKeys.PLAINS
         );
     }
 }

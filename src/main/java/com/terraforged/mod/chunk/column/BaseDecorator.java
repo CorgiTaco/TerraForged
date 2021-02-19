@@ -32,7 +32,7 @@ import com.terraforged.mod.api.chunk.column.ColumnDecorator;
 import com.terraforged.mod.api.chunk.column.DecoratorContext;
 import com.terraforged.mod.api.material.state.States;
 import com.terraforged.noise.util.NoiseUtil;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class BaseDecorator implements ColumnDecorator {
 
@@ -42,13 +42,13 @@ public class BaseDecorator implements ColumnDecorator {
     private static final Variance LAVA_LEVEL = Variance.of(32, 64);
 
     @Override
-    public void decorate(IChunk chunk, DecoratorContext context, int x, int y, int z) {
+    public void decorate(Chunk chunk, DecoratorContext context, int x, int y, int z) {
         y = decorateFluid(chunk, context, x, y, z);
 
         fillDown(context, chunk, x, z, y, 0, States.STONE.get());
     }
 
-    protected int decorateFluid(IChunk chunk, DecoratorContext context, int x, int y, int z) {
+    protected int decorateFluid(Chunk chunk, DecoratorContext context, int x, int y, int z) {
         if (y < context.levels.waterLevel) {
             return fillDown(context, chunk, x, z, context.levels.waterY, y, States.WATER.get());
         }

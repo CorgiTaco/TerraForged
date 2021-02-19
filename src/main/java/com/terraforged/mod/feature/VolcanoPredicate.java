@@ -32,7 +32,7 @@ import com.terraforged.mod.featuremanager.predicate.FeaturePredicate;
 import com.terraforged.noise.Module;
 import com.terraforged.noise.Source;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class VolcanoPredicate implements FeaturePredicate {
 
@@ -46,7 +46,7 @@ public class VolcanoPredicate implements FeaturePredicate {
     }
 
     @Override
-    public boolean test(IChunk chunk, Biome biome) {
+    public boolean test(Chunk chunk, Biome biome) {
         try (ChunkReader reader = generator.getChunkReader(chunk.getPos())) {
             Cell cell = reader.getCell(8, 8);
             if (cell.terrain.isVolcano()) {

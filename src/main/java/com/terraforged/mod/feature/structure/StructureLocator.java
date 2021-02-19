@@ -29,36 +29,37 @@ import com.terraforged.engine.concurrent.Resource;
 import com.terraforged.mod.Log;
 import com.terraforged.mod.biome.provider.TFBiomeProvider;
 import com.terraforged.mod.chunk.TFChunkGenerator;
-import net.minecraft.util.SharedSeedRandom;
+import net.minecraft.structure.StructureStart;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.SectionPos;
-import net.minecraft.world.IWorld;
+import net.minecraft.util.math.ChunkSectionPos;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.WorldAccess;
 import net.minecraft.world.biome.Biome;
+import net.minecraft.world.chunk.Chunk;
 import net.minecraft.world.chunk.ChunkStatus;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructureManager;
-import net.minecraft.world.gen.feature.structure.StructureStart;
-import net.minecraft.world.gen.settings.StructureSeparationSettings;
+import net.minecraft.world.gen.ChunkRandom;
+import net.minecraft.world.gen.StructureAccessor;
+import net.minecraft.world.gen.chunk.StructureConfig;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 public class StructureLocator {
 
     private static final int SEARCH_BATCH_SIZE = 100;
 
-    public static BlockPos findStructure(TFChunkGenerator generator, IWorld world, StructureManager manager, Structure<?> structure, BlockPos center, int attempts, boolean first, StructureSeparationSettings settings) {
+    public static BlockPos findStructure(TFChunkGenerator generator, WorldAccess world, StructureAccessor manager, StructureFeature<?> structure, BlockPos center, int attempts, boolean first, StructureConfig settings) {
         return findStructure(generator, world, manager, structure, center, attempts, first, settings, 5_000L);
     }
 
     // TODO: Consider splitting search area into concurrent search regions?
-    public static BlockPos findStructure(TFChunkGenerator generator, IWorld world, StructureManager manager, Structure<?> structure, BlockPos center, int radius, boolean first, StructureSeparationSettings settings, long timeout) {
+    public static BlockPos findStructure(TFChunkGenerator generator, WorldAccess world, StructureAccessor manager, StructureFeature<?> structure, BlockPos center, int radius, boolean first, StructureConfig settings, long timeout) {
         long seed = generator.getSeed();
-        int separation = settings.func_236668_a_();
+        int separation = settings.getSpacing();
         int chunkX = center.getX() >> 4;
         int chunkZ = center.getZ() >> 4;
 
-        SharedSeedRandom sharedseedrandom = new SharedSeedRandom();
-        TFBiomeProvider biomeProvider = generator.getBiomeProvider();
+        ChunkRandom sharedseedrandom = new ChunkRandom();
+        TFBiomeProvider biomeProvider = generator.getBiomeSource();
 
         int searchCount = 0;
         long searchTimeout = System.currentTimeMillis() + timeout;
@@ -80,7 +81,7 @@ public class StructureLocator {
                                 searchCount = 0;
                                 long now = System.currentTimeMillis();
                                 if (now > searchTimeout) {
-                                    Log.warn("Structure search took too long! {}", structure.getRegistryName());
+                                    Log.warn("Structure search took too long! {}", Registry.STRUCTURE_FEATURE.getId(structure));
                                     return null;
                                 }
                             }
@@ -88,16 +89,16 @@ public class StructureLocator {
                             int x = cx << 4;
                             int z = cz << 4;
                             Biome biome = biomeProvider.fastLookupBiome(cell, x, z);
-                            if (!biome.getGenerationSettings().hasStructure(structure)) {
+                            if (!biome.getGenerationSettings().hasStructureFeature(structure)) {
                                 continue;
                             }
 
-                            ChunkPos chunkpos = structure.getChunkPosForStructure(settings, seed, sharedseedrandom, cx, cz);
-                            IChunk ichunk = world.getChunk(chunkpos.x, chunkpos.z, ChunkStatus.STRUCTURE_STARTS);
-                            StructureStart<?> start = manager.getStructureStart(SectionPos.from(ichunk.getPos(), 0), structure, ichunk);
-                            if (start != null && start.isValid()) {
-                                if (first && start.isRefCountBelowMax()) {
-                                    start.incrementRefCount();
+                            ChunkPos chunkpos = structure.getStartChunk(settings, seed, sharedseedrandom, cx, cz);
+                            Chunk ichunk = world.getChunk(chunkpos.x, chunkpos.z, ChunkStatus.STRUCTURE_STARTS);
+                            StructureStart<?> start = manager.getStructureStart(ChunkSectionPos.from(ichunk.getPos(), 0), structure, ichunk);
+                            if (start != null && start.hasChildren()) {
+                                if (first && start.isInExistingChunk()) {
+                                    start.incrementReferences();
                                     return start.getPos();
                                 }
 

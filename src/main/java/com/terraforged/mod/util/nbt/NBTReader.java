@@ -31,85 +31,85 @@ import java.util.Collection;
 
 public class NBTReader implements Reader {
 
-    private final INBT root;
+    private final Tag root;
 
-    public NBTReader(INBT root) {
+    public NBTReader(Tag root) {
         this.root = root;
     }
 
     @Override
     public int getSize() {
-        if (root instanceof CompoundNBT) {
-            return ((CompoundNBT) root).size();
+        if (root instanceof CompoundTag) {
+            return ((CompoundTag) root).getSize();
         }
-        if (root instanceof ListNBT) {
-            return ((ListNBT) root).size();
+        if (root instanceof ListTag) {
+            return ((ListTag) root).size();
         }
         return 1;
     }
 
     @Override
     public NBTReader getChild(String key) {
-        return new NBTReader(((CompoundNBT) root).get(key));
+        return new NBTReader(((CompoundTag) root).get(key));
     }
 
     @Override
     public NBTReader getChild(int index) {
-        return new NBTReader(((ListNBT) root).get(index));
+        return new NBTReader(((ListTag) root).get(index));
     }
 
     @Override
     public Collection<String> getKeys() {
-        return ((CompoundNBT) root).keySet();
+        return ((CompoundTag) root).getKeys();
     }
 
     @Override
     public String getString(String key) {
-        return ((CompoundNBT) root).getString(key);
+        return ((CompoundTag) root).getString(key);
     }
 
     @Override
     public float getFloat(String key) {
-        return ((CompoundNBT) root).getFloat(key);
+        return ((CompoundTag) root).getFloat(key);
     }
 
     @Override
     public int getInt(String key) {
-        return ((CompoundNBT) root).getInt(key);
+        return ((CompoundTag) root).getInt(key);
     }
 
     @Override
     public String getString(int index) {
-        return ((ListNBT) root).getString(index);
+        return ((ListTag) root).getString(index);
     }
 
     @Override
     public float getFloat(int index) {
-        return ((ListNBT) root).getFloat(index);
+        return ((ListTag) root).getFloat(index);
     }
 
     @Override
     public int getInt(int index) {
-        return ((ListNBT) root).getInt(index);
+        return ((ListTag) root).getInt(index);
     }
 
     @Override
     public String getString() {
-        return root.getString();
+        return root.asString();
     }
 
     @Override
     public boolean getBool() {
-        return ((ByteNBT) root).getByte() == 1;
+        return ((ByteTag) root).getByte() == 1;
     }
 
     @Override
     public float getFloat() {
-        return ((FloatNBT) root).getFloat();
+        return ((FloatTag) root).getFloat();
     }
 
     @Override
     public int getInt() {
-        return ((IntNBT) root).getInt();
+        return ((IntTag) root).getInt();
     }
 }

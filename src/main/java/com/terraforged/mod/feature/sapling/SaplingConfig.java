@@ -32,8 +32,8 @@ import com.terraforged.mod.featuremanager.template.template.TemplateManager;
 import com.terraforged.mod.featuremanager.util.Json;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.ResourceLocation;
-import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.Registry;
 
 import java.util.*;
 
@@ -88,7 +88,7 @@ public class SaplingConfig implements BlockDataConfig {
 
     public static Optional<SaplingConfig> deserialize(JsonObject data) {
         String sapling = Json.getString("sapling", data, "");
-        Block block = ForgeRegistries.BLOCKS.getValue(new ResourceLocation(sapling));
+        Block block = Registry.BLOCK.get(new Identifier(sapling));
         if (block == Blocks.AIR) {
             return Optional.empty();
         }
@@ -104,7 +104,7 @@ public class SaplingConfig implements BlockDataConfig {
         List<TemplateFeatureConfig> list = Collections.emptyList();
         if (object != null) {
             for (Map.Entry<String, JsonElement> e : object.entrySet()) {
-                ResourceLocation name = new ResourceLocation(e.getKey());
+                Identifier name = new Identifier(e.getKey());
                 TemplateFeatureConfig template = TemplateManager.getInstance().getTemplateConfig(name);
                 if (template != TemplateFeatureConfig.NONE) {
                     int weight = Json.getInt("weight", e.getValue().getAsJsonObject(), 1);

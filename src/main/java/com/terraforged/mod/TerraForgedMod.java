@@ -25,72 +25,61 @@
 package com.terraforged.mod;
 
 import com.terraforged.engine.Engine;
-import com.terraforged.engine.concurrent.task.LazySupplier;
 import com.terraforged.mod.api.material.WGTags;
+import com.terraforged.mod.biome.ModBiomes;
 import com.terraforged.mod.config.ConfigManager;
+import com.terraforged.mod.mixin.access.GeneratorTypeAccess;
+import com.terraforged.mod.server.ServerEvents;
 import com.terraforged.mod.server.command.TerraCommand;
 import com.terraforged.mod.util.DataUtils;
 import com.terraforged.mod.util.Environment;
-import net.minecraftforge.event.TagsUpdatedEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.ModList;
-import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.minecraftforge.fml.loading.moddiscovery.ModFileInfo;
+import net.fabricmc.api.ModInitializer;
 
 import java.io.File;
-import java.util.function.Supplier;
 
-@Mod(TerraForgedMod.MODID)
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
-public class TerraForgedMod {
+public class TerraForgedMod implements ModInitializer {
 
     public static final String MODID = "terraforged";
     public static final File CONFIG_DIR = new File("config", MODID).getAbsoluteFile();
     public static final File PRESETS_DIR = new File(CONFIG_DIR, "presets");
     public static final File DATAPACK_DIR = new File(CONFIG_DIR, "datapacks");
-    private static final Supplier<String> VERSION = LazySupplier.of(() -> ModList.get().getModContainerById(MODID)
-            .map(mod -> mod.getModInfo().getVersion().toString())
-            .orElse("unknown"));
 
-    public TerraForgedMod() {
-        Environment.log();
-        ModFileInfo modInfo = ModList.get().getModFileById(MODID);
-        Log.info("Signature:  {}", modInfo.getCodeSigningFingerprint().orElse("UNSIGNED"));
-        Log.info("Trust Data: {}", modInfo.getTrustData().orElse("UNTRUSTED"));
-        Engine.init();
-        WGTags.init();
-    }
-
-    @SubscribeEvent
-    public static void setup(FMLCommonSetupEvent event) {
+    public static void setup() {
         Log.info("Common setup");
         DataUtils.initDirs(PRESETS_DIR, DATAPACK_DIR);
         TerraCommand.init();
         ConfigManager.init();
-        event.enqueueWork(() -> {
-            RegistrationEvents.registerCodecs();
-            RegistrationEvents.registerMissingBiomeTypes();
-        });
+        RegistrationEvents.registerCodecs();
+        RegistrationEvents.registerMissingBiomeTypes();
     }
 
-    @SubscribeEvent
-    public static void complete(FMLLoadCompleteEvent event) {
+    public static void complete() {
         // log version because people do dumb stuff like renaming jars
-        Log.info("Loaded TerraForged version {}", getVersion());
+        Log.info("Loaded TerraForged version {}");
     }
 
-    @Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.FORGE)
-    public static class ForgeEvents {
-        @SubscribeEvent
-        public static void update(TagsUpdatedEvent event) {
-            Log.info("Tags Reloaded");
-            WGTags.printTags();
-        }
+    @Override
+    public void onInitialize() {
+        Environment.log();
+        ServerEvents.serverStop();
+
+        Engine.init();
+        WGTags.init();
+
+        setup();
+        complete();
+        RegistrationEvents.registerFeatures();
+        RegistrationEvents.registerDecorators();
+        TerraCommand.register();
+        ModBiomes.register();
+        GeneratorTypeAccess.getVALUES().add(LevelType.TERRAFORGED);
     }
 
-    public static String getVersion() {
-        return VERSION.get();
-    }
+//    public static class ForgeEvents {
+//        @SubscribeEvent
+//        public static void update(TagsUpdatedEvent event) {
+//            Log.info("Tags Reloaded");
+//            WGTags.printTags();
+//        }
+//    }
 }

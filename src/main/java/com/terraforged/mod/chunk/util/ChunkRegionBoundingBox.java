@@ -25,11 +25,11 @@
 package com.terraforged.mod.chunk.util;
 
 import com.terraforged.mod.Log;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.gen.feature.structure.StructureStart;
+import net.minecraft.structure.StructureStart;
+import net.minecraft.util.math.BlockBox;
+import net.minecraft.util.math.Vec3i;
 
-public class ChunkRegionBoundingBox extends MutableBoundingBox {
+public class ChunkRegionBoundingBox extends BlockBox {
 
     private static final int INCLUSIVE_SIZE = 15;
     private static final String ERROR_MESSAGE = "Structure {} attempted to change the world-gen region bounds to an unsafe location/size. Original: {}, Altered: {}";
@@ -52,7 +52,7 @@ public class ChunkRegionBoundingBox extends MutableBoundingBox {
     }
 
     public ChunkRegionBoundingBox init(StructureStart<?> start) {
-        return init(start.getStructure().getStructureName());
+        return init(start.getFeature().getName());
     }
 
     public ChunkRegionBoundingBox init(String name) {
@@ -67,20 +67,20 @@ public class ChunkRegionBoundingBox extends MutableBoundingBox {
     }
 
     @Override
-    public void expandTo(MutableBoundingBox other) {
-        super.expandTo(other);
+    public void encompass(BlockBox other) {
+        super.encompass(other);
         validate();
     }
 
     @Override
-    public void offset(int x, int y, int z) {
-        super.offset(x, y, z);
+    public void move(int x, int y, int z) {
+        super.move(x, y, z);
         validate();
     }
 
     @Override
-    public void func_236989_a_(Vector3i vec) {
-        super.func_236989_a_(vec);
+    public void move(Vec3i vec) {
+        super.move(vec);
         validate();
     }
 
@@ -106,7 +106,7 @@ public class ChunkRegionBoundingBox extends MutableBoundingBox {
         }
     }
 
-    public static boolean contains(int x, int z, MutableBoundingBox bounds) {
+    public static boolean contains(int x, int z, BlockBox bounds) {
         return contains(x, z, bounds.minX, bounds.minZ, bounds.maxX, bounds.maxZ);
     }
 

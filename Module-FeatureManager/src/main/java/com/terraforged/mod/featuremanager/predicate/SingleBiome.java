@@ -25,22 +25,22 @@
 package com.terraforged.mod.featuremanager.predicate;
 
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.BiomeContainer;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.biome.source.BiomeArray;
+import net.minecraft.world.chunk.Chunk;
 
 public class SingleBiome implements FeaturePredicate {
 
     public static final FeaturePredicate INSTANCE = new SingleBiome();
 
     @Override
-    public boolean test(IChunk chunk, Biome biome) {
-        BiomeContainer biomes = chunk.getBiomes();
+    public boolean test(Chunk chunk, Biome biome) {
+        BiomeArray biomes = chunk.getBiomeArray();
         if (biomes == null) {
             return false;
         }
         for (int dz = 0; dz < 16; dz++) {
             for (int dx = 0; dx < 16; dx++) {
-                if (biomes.getNoiseBiome(dx, 0, dz) != biome) {
+                if (biomes.getBiomeForNoiseGen(dx, 0, dz) != biome) {
                     return false;
                 }
             }

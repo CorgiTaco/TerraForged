@@ -27,11 +27,10 @@ package com.terraforged.mod.featuremanager.template.type.tree;
 import com.terraforged.mod.featuremanager.template.decorator.BoundsRecorder;
 import com.terraforged.mod.featuremanager.template.decorator.DecoratorBuffer;
 import net.minecraft.block.BlockState;
-import net.minecraft.tags.BlockTags;
+import net.minecraft.tag.BlockTags;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.ISeedReader;
-
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.StructureWorldAccess;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -40,22 +39,22 @@ import java.util.List;
 public class TreeDecoratorBuffer extends BoundsRecorder implements DecoratorBuffer {
 
     private static final List<BlockPos> EMPTY_LIST = Collections.emptyList();
-    private static final Comparator<BlockPos> HIGHEST_FIRST = Comparator.comparingInt(Vector3i::getY);
+    private static final Comparator<BlockPos> HIGHEST_FIRST = Comparator.comparingInt(Vec3i::getY);
 
     private List<BlockPos> logList = null;
     private List<BlockPos> leafList = null;
 
-    public TreeDecoratorBuffer(ISeedReader delegate) {
+    public TreeDecoratorBuffer(StructureWorldAccess delegate) {
         super(delegate);
     }
 
     @Override
-    public ISeedReader getDelegate() {
+    public StructureWorldAccess getDelegate() {
         return super.getDelegate();
     }
 
     @Override
-    public void setDelegate(ISeedReader world) {
+    public void setDelegate(StructureWorldAccess world) {
         super.setDelegate(world);
     }
 

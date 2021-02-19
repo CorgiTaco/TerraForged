@@ -34,7 +34,7 @@ import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.biome.provider.BiomeWeights;
 import com.terraforged.mod.biome.provider.analyser.BiomeAnalyser;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
 import net.minecraft.world.biome.Biome;
 
 import java.io.*;
@@ -76,7 +76,7 @@ public class WorldGenBiomes extends DataGen {
         if (dataDir.exists() || dataDir.mkdirs()) {
             for (Biome biome : biomes) {
                 try {
-                    ResourceLocation name = context.biomes.getRegistryName(biome);
+                    Identifier name = context.biomes.getRegistryName(biome);
                     if (name == null) {
                         continue;
                     }

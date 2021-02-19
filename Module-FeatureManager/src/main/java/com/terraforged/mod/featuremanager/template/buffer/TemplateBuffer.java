@@ -30,12 +30,12 @@ import com.terraforged.mod.featuremanager.template.template.BlockInfo;
 import com.terraforged.noise.util.NoiseUtil;
 import net.minecraft.block.Blocks;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.vector.Vector3i;
-import net.minecraft.world.IWorld;
+import net.minecraft.util.math.Vec3i;
+import net.minecraft.world.WorldAccess;
 
 public class TemplateBuffer extends PasteBuffer {
 
-    private IWorld world;
+    private WorldAccess world;
     private BlockPos origin;
     private final BufferBitSet placementMask = new BufferBitSet();
 
@@ -43,7 +43,7 @@ public class TemplateBuffer extends PasteBuffer {
         setRecording(true);
     }
 
-    public TemplateBuffer init(IWorld world, BlockPos origin, Vector3i p1, Vector3i p2) {
+    public TemplateBuffer init(WorldAccess world, BlockPos origin, Vec3i p1, Vec3i p2) {
         super.clear();
         this.placementMask.clear();
         this.world = world;

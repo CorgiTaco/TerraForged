@@ -33,8 +33,8 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import com.mojang.brigadier.suggestion.SuggestionsBuilder;
 import com.terraforged.engine.world.terrain.Terrain;
 import com.terraforged.engine.world.terrain.TerrainType;
-import net.minecraft.command.ISuggestionProvider;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.command.CommandSource;
+import net.minecraft.text.LiteralText;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +59,7 @@ public class TerrainArgType implements ArgumentType<Terrain> {
     public <S> CompletableFuture<Suggestions> listSuggestions(CommandContext<S> context, SuggestionsBuilder suggestions) {
         List<String> options = new ArrayList<>();
         TerrainType.forEach(t -> options.add(t.getName()));
-        return ISuggestionProvider.suggest(options, suggestions);
+        return CommandSource.suggestMatching(options, suggestions);
     }
 
     public static ArgumentType<Terrain> terrain() {
@@ -72,8 +72,8 @@ public class TerrainArgType implements ArgumentType<Terrain> {
 
     private static CommandSyntaxException createException(String type, String message, Object... args) {
         return new CommandSyntaxException(
-                new SimpleCommandExceptionType(new StringTextComponent(type)),
-                new StringTextComponent(String.format(message, args))
+                new SimpleCommandExceptionType(new LiteralText(type)),
+                new LiteralText(String.format(message, args))
         );
     }
 }

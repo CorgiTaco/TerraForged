@@ -35,10 +35,10 @@ import com.terraforged.mod.chunk.TerraContext;
 import com.terraforged.mod.material.Materials;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
-import net.minecraft.block.material.Material;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.gen.surfacebuilders.ISurfaceBuilderConfig;
+import net.minecraft.block.Material;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.surfacebuilder.SurfaceConfig;
 
 public class ErosionDecorator implements ColumnDecorator {
 
@@ -76,7 +76,7 @@ public class ErosionDecorator implements ColumnDecorator {
     }
 
     @Override
-    public void decorate(IChunk chunk, DecoratorContext context, int x, int y, int z) {
+    public void decorate(Chunk chunk, DecoratorContext context, int x, int y, int z) {
 
     }
 
@@ -90,13 +90,13 @@ public class ErosionDecorator implements ColumnDecorator {
             return;
         }
 
-        IChunk chunk = plainStone ? buffer : buffer.getDelegate();
+        Chunk chunk = plainStone ? buffer : buffer.getDelegate();
 
-        y = chunk.getTopBlockY(Heightmap.Type.WORLD_SURFACE_WG, x, z);
+        y = chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE_WG, x, z);
 
-        ISurfaceBuilderConfig config = BiomeHelper.getSurface(context.biome);
-        BlockState top = config.getTop();
-        BlockState middle = config.getUnder();
+        SurfaceConfig config = BiomeHelper.getSurface(context.biome);
+        BlockState top = config.getTopMaterial();
+        BlockState middle = config.getUnderMaterial();
         Materials materials = this.materials.get();
 
         if (materials.isErodible(top.getBlock())) {
@@ -113,12 +113,12 @@ public class ErosionDecorator implements ColumnDecorator {
         }
     }
 
-    protected void erodeRock(DecoratorContext context, IChunk chunk, Materials materials, int dx, int y, int dz) {
+    protected void erodeRock(DecoratorContext context, Chunk chunk, Materials materials, int dx, int y, int dz) {
         int depth = 32;
         BlockState material = States.GRAVEL.get();
         // find the uppermost layer of rock & record it's depth
         for (int dy = 3; dy < 32; dy++) {
-            context.pos.setPos(dx, y - dy, dz);
+            context.pos.set(dx, y - dy, dz);
             BlockState state = chunk.getBlockState(context.pos);
             if (materials.isStone(state.getBlock())) {
                 material = state;
@@ -129,11 +129,11 @@ public class ErosionDecorator implements ColumnDecorator {
 
         // fill downwards to the first rock layer
         for (int dy = 0; dy < depth; dy++) {
-            ColumnDecorator.replaceSolid(chunk, context.pos.setPos(dx, y - dy, dz), material);
+            ColumnDecorator.replaceSolid(chunk, context.pos.set(dx, y - dy, dz), material);
         }
     }
 
-    protected void placeScree(IChunk chunk, DecoratorContext context, int x, int y, int z) {
+    protected void placeScree(Chunk chunk, DecoratorContext context, int x, int y, int z) {
         float steepness = context.cell.gradient + context.climate.getRand().getValue(x, z, seed2) * SLOPE_MODIFIER;
         if (steepness < SCREE_STEEPNESS) {
             return;
@@ -170,23 +170,23 @@ public class ErosionDecorator implements ColumnDecorator {
     }
 
     private static BlockState rock(BlockState state) {
-        if (state.getMaterial() == Material.ROCK) {
+        if (state.getMaterial() == Material.STONE) {
             return state;
         }
         return States.STONE.get();
     }
 
     private static BlockState ground(BlockState state) {
-        if (state.getMaterial() == Material.ORGANIC) {
+        if (state.getMaterial() == Material.SOLID_ORGANIC) {
             return States.COARSE_DIRT.get();
         }
-        if (state.getMaterial() == Material.ROCK) {
+        if (state.getMaterial() == Material.STONE) {
             return States.GRAVEL.get();
         }
-        if (state.getMaterial() == Material.EARTH) {
+        if (state.getMaterial() == Material.SOIL) {
             return state;
         }
-        if (state.getMaterial() == Material.SAND) {
+        if (state.getMaterial() == Material.AGGREGATE) {
             if (state.getBlock() == Blocks.SAND) {
                 return States.SMOOTH_SANDSTONE.get();
             }

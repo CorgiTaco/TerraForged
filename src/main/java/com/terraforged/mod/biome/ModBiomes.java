@@ -27,18 +27,15 @@ package com.terraforged.mod.biome;
 import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.mod.biome.context.TFBiomeContext;
 import com.terraforged.mod.biome.utils.BiomeBuilder;
-import net.minecraft.util.RegistryKey;
-import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.util.registry.Registry;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraftforge.event.RegistryEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.fml.common.Mod;
 
 import java.util.HashMap;
 import java.util.Map;
 
-@Mod.EventBusSubscriber(bus = Mod.EventBusSubscriber.Bus.MOD)
 public class ModBiomes {
 
     private static final Map<RegistryKey<Biome>, RegistryKey<Biome>> remaps = new HashMap<>();
@@ -61,25 +58,24 @@ public class ModBiomes {
     public static final RegistryKey<Biome> TAIGA_SCRUB = createKey("taiga_scrub");
     public static final RegistryKey<Biome> WARM_BEACH = createKey("warm_beach");
 
-    @SubscribeEvent
-    public static void register(RegistryEvent.Register<Biome> event) {
-        register(event, BRYCE, BiomeBuilders.bryce());
-        register(event, COLD_STEPPE, BiomeBuilders.coldSteppe());
-        register(event, COLD_MARSHLAND, BiomeBuilders.coldMarsh());
-        register(event, FIR_FOREST, BiomeBuilders.firForest());
-        register(event, FLOWER_PLAINS, BiomeBuilders.flowerPlains());
-        register(event, FROZEN_LAKE, BiomeBuilders.frozenLake());
-        register(event, FROZEN_MARSH, BiomeBuilders.frozenMarsh());
-        register(event, LAKE, BiomeBuilders.lake());
-        register(event, MARSHLAND, BiomeBuilders.marshland());
-        register(event, SAVANNA_SCRUB, BiomeBuilders.savannaScrub());
-        register(event, SHATTERED_SAVANNA_SCRUB, BiomeBuilders.shatteredSavannaScrub());
-        register(event, SNOWY_FIR_FOREST, BiomeBuilders.snowyFirForest());
-        register(event, SNOWY_TAIGA_SCRUB, BiomeBuilders.snowyTaigaScrub());
-        register(event, STEPPE, BiomeBuilders.steppe());
-        register(event, STONE_FOREST, BiomeBuilders.stoneForest());
-        register(event, TAIGA_SCRUB, BiomeBuilders.taigaScrub());
-        register(event, WARM_BEACH, BiomeBuilders.warmBeach());
+    public static void register() {
+        register(BRYCE, BiomeBuilders.bryce());
+        register(COLD_STEPPE, BiomeBuilders.coldSteppe());
+        register(COLD_MARSHLAND, BiomeBuilders.coldMarsh());
+        register(FIR_FOREST, BiomeBuilders.firForest());
+        register(FLOWER_PLAINS, BiomeBuilders.flowerPlains());
+        register(FROZEN_LAKE, BiomeBuilders.frozenLake());
+        register(FROZEN_MARSH, BiomeBuilders.frozenMarsh());
+        register(LAKE, BiomeBuilders.lake());
+        register(MARSHLAND, BiomeBuilders.marshland());
+        register(SAVANNA_SCRUB, BiomeBuilders.savannaScrub());
+        register(SHATTERED_SAVANNA_SCRUB, BiomeBuilders.shatteredSavannaScrub());
+        register(SNOWY_FIR_FOREST, BiomeBuilders.snowyFirForest());
+        register(SNOWY_TAIGA_SCRUB, BiomeBuilders.snowyTaigaScrub());
+        register(STEPPE, BiomeBuilders.steppe());
+        register(STONE_FOREST, BiomeBuilders.stoneForest());
+        register(TAIGA_SCRUB, BiomeBuilders.taigaScrub());
+        register(WARM_BEACH, BiomeBuilders.warmBeach());
     }
 
     public static Biome remap(Biome biome, TFBiomeContext context) {
@@ -97,11 +93,13 @@ public class ModBiomes {
     }
 
     private static RegistryKey<Biome> createKey(String name) {
-        return RegistryKey.getOrCreateKey(Registry.BIOME_KEY, new ResourceLocation(TerraForgedMod.MODID, name));
+        return RegistryKey.of(Registry.BIOME_KEY, new Identifier(TerraForgedMod.MODID, name));
     }
 
-    private static void register(RegistryEvent.Register<Biome> event, RegistryKey<Biome> key, BiomeBuilder builder) {
-        event.getRegistry().register(builder.build(key));
+    private static void register(RegistryKey<Biome> key, BiomeBuilder builder) {
+        if (!BuiltinRegistries.BIOME.getIds().contains(key.getValue()))
+            Registry.register(BuiltinRegistries.BIOME, key.getValue(), builder.build());
+
         builder.registerTypes(key);
         builder.registerWeight(key);
         remaps.put(key, builder.getParentKey());

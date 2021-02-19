@@ -24,7 +24,6 @@
 
 package com.terraforged.mod.client.gui.screen.page;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.terraforged.mod.chunk.settings.TerraSettings;
 import com.terraforged.mod.chunk.settings.preset.Preset;
 import com.terraforged.mod.chunk.settings.preset.PresetManager;
@@ -39,8 +38,9 @@ import com.terraforged.mod.client.gui.screen.ScrollPane;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayScreen;
 import com.terraforged.mod.config.ConfigManager;
 import com.terraforged.mod.util.DataUtils;
-import net.minecraft.client.gui.widget.Widget;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.client.gui.widget.AbstractButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.Optional;
 import java.util.function.Predicate;
@@ -52,13 +52,13 @@ public class PresetsPage extends BasePage {
 
     private final Instance instance;
     private final UpdatablePage preview;
-    private final Widget previewWidget;
+    private final AbstractButtonWidget previewWidget;
     private final TFTextBox nameInput;
     private final ConfigScreen parent;
     private final PresetManager manager = PresetManager.load();
 
-    public PresetsPage(ConfigScreen parent, Instance instance, UpdatablePage preview, Widget widget) {
-        CompoundNBT value = new CompoundNBT();
+    public PresetsPage(ConfigScreen parent, Instance instance, UpdatablePage preview, AbstractButtonWidget widget) {
+        CompoundTag value = new CompoundTag();
         value.putString("name", "");
         this.parent = parent;
         this.preview = preview;
@@ -246,7 +246,7 @@ public class PresetsPage extends BasePage {
 
     private void setSelected(Preset preset) {
         ScrollPane pane = getColumn(0).scrollPane;
-        for (ScrollPane.Entry entry : pane.getEventListeners()) {
+        for (ScrollPane.Entry entry : pane.children()) {
             if (entry.option.getMessage().getString().equalsIgnoreCase(preset.getName())) {
                 pane.setSelected(entry);
                 return;
@@ -266,7 +266,7 @@ public class PresetsPage extends BasePage {
         Column left = getColumn(0);
         left.scrollPane.setSelected(null);
         left.scrollPane.setRenderSelection(true);
-        left.scrollPane.getEventListeners().clear();
+        left.scrollPane.children().clear();
 
         for (Preset preset : manager) {
             if (preset.internal()) {

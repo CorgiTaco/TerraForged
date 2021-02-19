@@ -25,32 +25,31 @@
 package com.terraforged.mod.featuremanager.data;
 
 import com.terraforged.mod.Log;
-import net.minecraft.resources.FolderPackFinder;
-import net.minecraft.resources.IPackNameDecorator;
-import net.minecraft.resources.ResourcePackInfo;
-
 import java.io.File;
 import java.util.function.Consumer;
+import net.minecraft.resource.FileResourcePackProvider;
+import net.minecraft.resource.ResourcePackProfile;
+import net.minecraft.resource.ResourcePackSource;
 
-public class FolderDataPackFinder extends FolderPackFinder {
+public class FolderDataPackFinder extends FileResourcePackProvider {
 
-    public static final IPackNameDecorator TF_FOLDER = IPackNameDecorator.create("pack.source.folder");
+    public static final ResourcePackSource TF_FOLDER = ResourcePackSource.method_29486("pack.source.folder");
 
     public FolderDataPackFinder(File folderIn) {
         this(folderIn, TF_FOLDER);
     }
 
-    public FolderDataPackFinder(File folderIn, IPackNameDecorator decorator) {
+    public FolderDataPackFinder(File folderIn, ResourcePackSource decorator) {
         super(folderIn, decorator);
     }
 
     @Override
-    public void findPacks(Consumer<ResourcePackInfo> consumer, ResourcePackInfo.IFactory factory) {
+    public void register(Consumer<ResourcePackProfile> consumer, ResourcePackProfile.Factory factory) {
         Log.debug("Searching for DataPacks...");
-        super.findPacks(packLogger(consumer), factory);
+        super.register(packLogger(consumer), factory);
     }
 
-    private static Consumer<ResourcePackInfo> packLogger(Consumer<ResourcePackInfo> consumer) {
+    private static Consumer<ResourcePackProfile> packLogger(Consumer<ResourcePackProfile> consumer) {
         return packInfo -> {
             Log.debug("Adding datapack: {}", packInfo.getName());
             consumer.accept(packInfo);

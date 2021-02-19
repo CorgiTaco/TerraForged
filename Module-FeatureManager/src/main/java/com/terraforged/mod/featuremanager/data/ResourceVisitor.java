@@ -24,11 +24,10 @@
 
 package com.terraforged.mod.featuremanager.data;
 
-import net.minecraft.util.ResourceLocation;
-
 import java.io.IOException;
+import net.minecraft.util.Identifier;
 
 public interface ResourceVisitor<T> {
 
-    void accept(ResourceLocation location, T data) throws IOException;
+    void accept(Identifier location, T data) throws IOException;
 }

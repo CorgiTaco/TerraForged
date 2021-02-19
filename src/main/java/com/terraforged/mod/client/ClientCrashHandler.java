@@ -28,10 +28,10 @@ import com.terraforged.engine.concurrent.thread.ThreadPools;
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.profiler.crash.CrashHandler;
 import com.terraforged.mod.profiler.crash.CrashReportBuilder;
-import net.minecraft.client.Minecraft;
-import net.minecraft.crash.CrashReport;
-import net.minecraft.util.registry.Bootstrap;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.Bootstrap;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.util.crash.CrashReport;
+import net.minecraft.world.chunk.Chunk;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -43,7 +43,7 @@ public class ClientCrashHandler implements CrashHandler {
     private final StampedLock lock = new StampedLock();
 
     @Override
-    public void crash(IChunk chunk, TFChunkGenerator generator, Throwable t) {
+    public void crash(Chunk chunk, TFChunkGenerator generator, Throwable t) {
         final long stamp = lock.tryWriteLock();
         if (!lock.validate(stamp)) {
             return;
@@ -58,17 +58,17 @@ public class ClientCrashHandler implements CrashHandler {
         }
     }
     private static void displayCrashReport(CrashReport report) {
-        File file1 = new File(Minecraft.getInstance().gameDir, "crash-reports");
+        File file1 = new File(MinecraftClient.getInstance().runDirectory, "crash-reports");
         File file2 = new File(file1, "crash-" + (new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss")).format(new Date()) + "-client.txt");
-        Bootstrap.printToSYSOUT(report.getCompleteReport());
+        Bootstrap.println(report.asString());
         if (report.getFile() != null) {
-            Bootstrap.printToSYSOUT("#@!@# Game crashed! Crash report saved to: #@!@# " + report.getFile());
+            Bootstrap.println("#@!@# Game crashed! Crash report saved to: #@!@# " + report.getFile());
             Runtime.getRuntime().halt(-1);
-        } else if (report.saveToFile(file2)) {
-            Bootstrap.printToSYSOUT("#@!@# Game crashed! Crash report saved to: #@!@# " + file2.getAbsolutePath());
+        } else if (report.writeToFile(file2)) {
+            Bootstrap.println("#@!@# Game crashed! Crash report saved to: #@!@# " + file2.getAbsolutePath());
             Runtime.getRuntime().halt(-1);
         } else {
-            Bootstrap.printToSYSOUT("#@?@# Game crashed! Crash report could not be saved. #@?@#");
+            Bootstrap.println("#@?@# Game crashed! Crash report could not be saved. #@?@#");
             Runtime.getRuntime().halt(-2);
         }
     }

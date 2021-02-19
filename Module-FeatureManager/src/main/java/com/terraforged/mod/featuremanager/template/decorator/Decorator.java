@@ -25,21 +25,20 @@
 package com.terraforged.mod.featuremanager.template.decorator;
 
 import com.google.gson.JsonElement;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.IWorld;
-
 import java.util.Optional;
 import java.util.Random;
+import net.minecraft.util.Identifier;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.WorldAccess;
 
-public interface Decorator<T extends IWorld> {
+public interface Decorator<T extends WorldAccess> {
 
     void apply(T world, Random random);
 
-    interface Factory<T extends IWorld> {
+    interface Factory<T extends WorldAccess> {
 
-        T wrap(ISeedReader world);
+        T wrap(StructureWorldAccess world);
 
-        Optional<Decorator<T>> parse(ResourceLocation type, JsonElement config);
+        Optional<Decorator<T>> parse(Identifier type, JsonElement config);
     }
 }

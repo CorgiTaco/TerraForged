@@ -25,23 +25,22 @@
 package com.terraforged.mod.client.gui.element;
 
 import com.terraforged.noise.util.NoiseUtil;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.util.text.StringTextComponent;
-import net.minecraftforge.fml.client.gui.widget.Slider;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.text.LiteralText;
 
 import java.util.List;
 
 public abstract class TFSlider extends Slider implements Slider.ISlider, Element {
 
     protected final String name;
-    private final CompoundNBT value;
+    private final CompoundTag value;
     private final List<String> tooltip;
 
     private boolean lock = false;
     private Runnable callback = () -> {};
 
-    public TFSlider(String name, CompoundNBT value, boolean decimal) {
-        super(0, 0, 100, 20, new StringTextComponent(Element.getDisplayName(name, value) + ": "), new StringTextComponent(""), min(name, value), max(name, value), 0F, decimal, true, b -> {});
+    public TFSlider(String name, CompoundTag value, boolean decimal) {
+        super(0, 0, 100, 20, new LiteralText(Element.getDisplayName(name, value) + ": "), new LiteralText(""), min(name, value), max(name, value), 0F, decimal, true, b -> {});
         this.name = name;
         this.value = value;
         this.parent = this;
@@ -75,35 +74,35 @@ public abstract class TFSlider extends Slider implements Slider.ISlider, Element
         super.onRelease(mouseX, mouseY);
     }
 
-    protected abstract void onChange(Slider slider, CompoundNBT value);
+    protected abstract void onChange(Slider slider, CompoundTag value);
 
-    private static float min(String name, CompoundNBT value) {
-        CompoundNBT meta = value.getCompound("#" + name);
+    private static float min(String name, CompoundTag value) {
+        CompoundTag meta = value.getCompound("#" + name);
         return meta.getFloat("min");
     }
 
-    private static float max(String name, CompoundNBT value) {
-        CompoundNBT meta = value.getCompound("#" + name);
+    private static float max(String name, CompoundTag value) {
+        CompoundTag meta = value.getCompound("#" + name);
         return meta.getFloat("max");
     }
 
     public static class Int extends TFSlider {
 
-        public Int(String name, CompoundNBT value) {
+        public Int(String name, CompoundTag value) {
             super(name, value, false);
             setValue(value.getInt(name));
             updateSlider();
         }
 
         @Override
-        protected void onChange(Slider slider, CompoundNBT value) {
+        protected void onChange(Slider slider, CompoundTag value) {
             value.putInt(name, slider.getValueInt());
         }
     }
 
     public static class Float extends TFSlider {
 
-        public Float(String name, CompoundNBT value) {
+        public Float(String name, CompoundTag value) {
             super(name, value, true);
             precision = 3;
             setValue(value.getFloat(name));
@@ -111,7 +110,7 @@ public abstract class TFSlider extends Slider implements Slider.ISlider, Element
         }
 
         @Override
-        protected void onChange(Slider slider, CompoundNBT value) {
+        protected void onChange(Slider slider, CompoundTag value) {
             int i = (int) (slider.getValue() * 1000);
             float f = i / 1000F;
             value.putFloat(name, f);
@@ -125,23 +124,23 @@ public abstract class TFSlider extends Slider implements Slider.ISlider, Element
         protected final String lower;
         protected final String upper;
 
-        public BoundSlider(String name, CompoundNBT value, float defaultPad, boolean decimal) {
+        public BoundSlider(String name, CompoundTag value, float defaultPad, boolean decimal) {
             super(name, value, decimal);
-            CompoundNBT meta = value.getCompound("#" + name);
+            CompoundTag meta = value.getCompound("#" + name);
             float pad = meta.getFloat("pad");
             this.pad = pad < 0 ? defaultPad : pad;
             this.lower = meta.getString("limit_lower");
             this.upper = meta.getString("limit_upper");
         }
 
-        protected float getLower(CompoundNBT value) {
+        protected float getLower(CompoundTag value) {
             if (lower == null || lower.isEmpty()) {
                 return (float) (super.minValue - pad);
             }
             return value.getFloat(lower);
         }
 
-        protected float getUpper(CompoundNBT value) {
+        protected float getUpper(CompoundTag value) {
             if (upper == null || upper.isEmpty()) {
                 return (float) (super.maxValue + pad);
             }
@@ -152,11 +151,11 @@ public abstract class TFSlider extends Slider implements Slider.ISlider, Element
     // float (0.0-1.0) variant of the bound slider
     public static class BoundFloat extends BoundSlider {
 
-        public BoundFloat(String name, CompoundNBT value) {
+        public BoundFloat(String name, CompoundTag value) {
             this(name, value, 0.005F);
         }
 
-        public BoundFloat(String name, CompoundNBT value, float pad) {
+        public BoundFloat(String name, CompoundTag value, float pad) {
             super(name, value, pad, true);
             precision = 3;
             setValue(value.getFloat(name));
@@ -164,7 +163,7 @@ public abstract class TFSlider extends Slider implements Slider.ISlider, Element
         }
 
         @Override
-        protected void onChange(Slider slider, CompoundNBT value) {
+        protected void onChange(Slider slider, CompoundTag value) {
             int i = (int) (slider.getValue() * 1000);
 
             float lower = getLower(value) + pad;
@@ -183,18 +182,18 @@ public abstract class TFSlider extends Slider implements Slider.ISlider, Element
     // int variant of the bound slider
     public static class BoundInt extends BoundSlider {
 
-        public BoundInt(String name, CompoundNBT value) {
+        public BoundInt(String name, CompoundTag value) {
             this(name, value, 1);
         }
 
-        public BoundInt(String name, CompoundNBT value, int pad) {
+        public BoundInt(String name, CompoundTag value, int pad) {
             super(name, value, pad, false);
             setValue(value.getInt(name));
             updateSlider();
         }
 
         @Override
-        protected void onChange(Slider slider, CompoundNBT value) {
+        protected void onChange(Slider slider, CompoundTag value) {
             int i = slider.getValueInt();
 
             float lower = getLower(value) + pad;

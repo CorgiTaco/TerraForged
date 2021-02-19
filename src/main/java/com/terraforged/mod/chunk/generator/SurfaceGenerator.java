@@ -31,9 +31,13 @@ import com.terraforged.mod.biome.TFBiomeContainer;
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import com.terraforged.mod.chunk.util.FastChunk;
 import net.minecraft.block.BlockState;
-import net.minecraft.util.SharedSeedRandom;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.*;
+import net.minecraft.util.math.noise.NoiseSampler;
+import net.minecraft.util.math.noise.OctaveSimplexNoiseSampler;
+import net.minecraft.world.ChunkRegion;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.ChunkRandom;
+import net.minecraft.world.gen.chunk.ChunkGeneratorSettings;
 
 import java.util.stream.IntStream;
 
@@ -42,27 +46,27 @@ public class SurfaceGenerator implements Generator.Surfaces {
     private final BlockState solid;
     private final BlockState fluid;
     private final TFChunkGenerator generator;
-    private final INoiseGenerator surfaceNoise;
+    private final NoiseSampler surfaceNoise;
 
     public SurfaceGenerator(TFChunkGenerator generator) {
-        DimensionSettings settings = generator.getSettings().get();
+        ChunkGeneratorSettings settings = generator.getSettings().get();
         this.generator = generator;
         this.solid = settings.getDefaultBlock();
         this.fluid = settings.getDefaultBlock();
-        this.surfaceNoise = new PerlinNoiseGenerator(new SharedSeedRandom(generator.getSeed()), IntStream.rangeClosed(-3, 0));
+        this.surfaceNoise = new OctaveSimplexNoiseSampler(new ChunkRandom(generator.getSeed()), IntStream.rangeClosed(-3, 0));
     }
 
     @Override
-    public final void generateSurface(WorldGenRegion world, IChunk chunk) {
+    public final void generateSurface(ChunkRegion world, Chunk chunk) {
         try (ChunkReader reader = generator.getChunkReader(chunk.getPos().x, chunk.getPos().z)) {
-            TFBiomeContainer container = TFBiomeContainer.getOrCreate(chunk, reader, generator.getBiomeProvider());
+            TFBiomeContainer container = TFBiomeContainer.getOrCreate(chunk, reader, generator.getBiomeSource());
             SurfaceChunk buffer = new SurfaceChunk(chunk);
 
             try (SurfaceContext context = generator.getContext().surface(buffer, container, solid, fluid)) {
                 reader.iterate(context, (cell, dx, dz, ctx) -> {
                     int px = ctx.blockX + dx;
                     int pz = ctx.blockZ + dz;
-                    int top = ctx.chunk.getTopBlockY(Heightmap.Type.WORLD_SURFACE_WG, dx, dz);
+                    int top = ctx.chunk.sampleHeightmap(Heightmap.Type.WORLD_SURFACE_WG, dx, dz);
 
                     ctx.buffer.setSurfaceLevel(top);
                     ctx.cell = cell;
@@ -72,7 +76,7 @@ public class SurfaceGenerator implements Generator.Surfaces {
 
                     int py = ctx.levels.scale(cell.value);
                     ctx.surfaceY = py;
-                    ctx.pos.setPos(px, py, pz);
+                    ctx.pos.set(px, py, pz);
 
                     for (int i = 0; i < generator.getSurfaceDecorators().size(); i++) {
                         generator.getSurfaceDecorators().get(i).decorate(buffer, ctx, px, py, pz);
@@ -89,6 +93,6 @@ public class SurfaceGenerator implements Generator.Surfaces {
         double noiseZ = z * scale;
         double unusedValue1 = scale;
         double unusedValue2 = (x & 15) * scale;
-        return surfaceNoise.noiseAt(noiseX, noiseZ, unusedValue1, unusedValue2);
+        return surfaceNoise.sample(noiseX, noiseZ, unusedValue1, unusedValue2);
     }
 }

@@ -24,8 +24,8 @@
 
 package com.terraforged.mod.client.gui.screen.overlay;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.math.MatrixStack;
 
 public interface OverlayRenderer {
 

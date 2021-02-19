@@ -30,23 +30,23 @@ import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import it.unimi.dsi.fastutil.objects.ObjectListIterator;
 import net.minecraft.block.BlockState;
+import net.minecraft.structure.PoolStructurePiece;
+import net.minecraft.structure.StructurePiece;
+import net.minecraft.structure.StructureStart;
+import net.minecraft.structure.pool.StructurePool;
+import net.minecraft.util.math.BlockBox;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
-import net.minecraft.util.math.MutableBoundingBox;
-import net.minecraft.world.IWorld;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.Heightmap;
-import net.minecraft.world.gen.feature.jigsaw.JigsawPattern;
-import net.minecraft.world.gen.feature.structure.AbstractVillagePiece;
-import net.minecraft.world.gen.feature.structure.Structure;
-import net.minecraft.world.gen.feature.structure.StructurePiece;
-import net.minecraft.world.gen.feature.structure.StructureStart;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.WorldAccess;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.gen.feature.StructureFeature;
 
 import java.util.List;
 
 public class StructureTerrain {
 
-    private static final Structure<?>[] EMPTY_ARRAY = new Structure[0];
+    private static final StructureFeature<?>[] EMPTY_ARRAY = new StructureFeature[0];
 
     private static final int MIN_RADIUS = 4;
     private static final int MAX_RADIUS = 10;
@@ -54,7 +54,7 @@ public class StructureTerrain {
     private final float radiusScale;
     private final float overhang;
     private final float overhang2;
-    private final Structure<?>[] structures = getTerrainFitStructures().toArray(EMPTY_ARRAY);
+    private final StructureFeature<?>[] structures = getTerrainFitStructures().toArray(EMPTY_ARRAY);
     private final ThreadLocal<StructureTerrainResource> resource = ThreadLocal.withInitial(StructureTerrainResource::new);
 
     // base - the size of the base built up around a piece as a percentage of its bounding box size
@@ -65,15 +65,15 @@ public class StructureTerrain {
         this.overhang2 = cutout * cutout;
     }
 
-    public void apply(IWorld world, IChunk chunk) {
+    public void apply(WorldAccess world, Chunk chunk) {
         StructureTerrainResource resource = this.resource.get().reset();
         collectPieces(world, chunk, resource);
         buildBases(chunk, resource);
     }
 
-    private void collectPieces(IWorld world, IChunk chunk, StructureTerrainResource resource) {
+    private void collectPieces(WorldAccess world, Chunk chunk, StructureTerrainResource resource) {
         ChunkPos pos = chunk.getPos();
-        for (Structure<?> structure : structures) {
+        for (StructureFeature<?> structure : structures) {
             LongSet set = chunk.getStructureReferences().get(structure);
             if (set == null) {
                 continue;
@@ -83,12 +83,12 @@ public class StructureTerrain {
             while (structureIds.hasNext()) {
                 long id = structureIds.nextLong();
                 ChunkPos structurePos = new ChunkPos(id);
-                IChunk neighbourChunk = world.getChunk(structurePos.asBlockPos());
+                Chunk neighbourChunk = world.getChunk(structurePos.getStartPos());
                 StructureStart<?> structureStart = neighbourChunk.getStructureStarts().get(structure);
-                if (structureStart != null && structureStart.isValid()) {
-                    for (StructurePiece structurepiece : structureStart.getComponents()) {
+                if (structureStart != null && structureStart.hasChildren()) {
+                    for (StructurePiece structurepiece : structureStart.getChildren()) {
                         // collect if piece is within radius of the chunk
-                        if (structurepiece.func_214810_a(pos, 16)) {
+                        if (structurepiece.intersectsChunk(pos, 16)) {
                             collectPiece(structurepiece, resource.pieces);
                         }
                     }
@@ -98,14 +98,14 @@ public class StructureTerrain {
     }
 
     // lowers or raises the terrain matcher the base height of each structure piece
-    private void buildBases(IChunk chunk, StructureTerrainResource resource) {
-        final int chunkStartX = chunk.getPos().getXStart();
-        final int chunkStartZ = chunk.getPos().getZStart();
+    private void buildBases(Chunk chunk, StructureTerrainResource resource) {
+        final int chunkStartX = chunk.getPos().getStartX();
+        final int chunkStartZ = chunk.getPos().getStartZ();
         final ObjectListIterator<StructurePiece> iterator = resource.iterator;
 
         final BlockPos.Mutable mutablePos = resource.mutablePos;
-        final MutableBoundingBox utilBounds = resource.mutableBounds;
-        final MutableBoundingBox chunkBounds = assignChunk(resource.chunkBounds, chunkStartX, chunkStartZ);
+        final BlockBox utilBounds = resource.mutableBounds;
+        final BlockBox chunkBounds = assignChunk(resource.chunkBounds, chunkStartX, chunkStartZ);
 
         final BlockState air = States.AIR.get();
         final BlockState solid = States.STONE.get();
@@ -114,14 +114,14 @@ public class StructureTerrain {
             for (int dx = 0; dx < 16; dx++) {
                 int x = chunkStartX + dx;
                 int z = chunkStartZ + dz;
-                int surface = chunk.getTopBlockY(Heightmap.Type.OCEAN_FLOOR_WG, dx, dz);
+                int surface = chunk.sampleHeightmap(Heightmap.Type.OCEAN_FLOOR_WG, dx, dz);
                 float y = surface;
 
                 int highestOffset = 0;
                 StructurePiece highest = null;
                 while (iterator.hasNext()) {
                     StructurePiece piece = iterator.next();
-                    MutableBoundingBox pieceBounds = piece.getBoundingBox();
+                    BlockBox pieceBounds = piece.getBoundingBox();
                     int length = Math.min(pieceBounds.maxX - pieceBounds.minX, pieceBounds.maxZ - pieceBounds.minZ);
                     int borderRadius = Math.min(MIN_RADIUS, Math.max(MAX_RADIUS, NoiseUtil.round(length * radiusScale)));
 
@@ -132,7 +132,7 @@ public class StructureTerrain {
                     int offset = getGroundLevelDelta(piece);
                     int level = pieceBounds.minY + offset;
                     if (level > y) {
-                        y = raise(pieceBounds, mutablePos.setPos(x, surface, z), level, y, borderRadius);
+                        y = raise(pieceBounds, mutablePos.set(x, surface, z), level, y, borderRadius);
                     }
 
                     if (x > pieceBounds.minX && x < pieceBounds.maxX && z > pieceBounds.minZ && z < pieceBounds.maxZ) {
@@ -149,15 +149,15 @@ public class StructureTerrain {
                 if (y > surface) {
                     int delta = (int) y - surface;
                     for (int dy = 0; dy < delta; dy++) {
-                        mutablePos.setPos(dx, surface + dy, dz);
+                        mutablePos.set(dx, surface + dy, dz);
                         chunk.setBlockState(mutablePos, solid, false);
                     }
                 }
 
                 if (highest != null) {
-                    MutableBoundingBox bounds = highest.getBoundingBox();
+                    BlockBox bounds = highest.getBoundingBox();
                     int minY = bounds.minY + highestOffset;
-                    int maxY = minY + bounds.getYSize();
+                    int maxY = minY + bounds.getBlockCountY();
 
                     if (maxY <= surface) {
                         // gets weaker the further from the center of the piece
@@ -172,7 +172,7 @@ public class StructureTerrain {
                     }
 
                     for (int dy = minY; dy <= maxY; dy++) {
-                        mutablePos.setPos(dx, dy, dz);
+                        mutablePos.set(dx, dy, dz);
                         chunk.setBlockState(mutablePos, air, false);
                     }
                 }
@@ -180,12 +180,12 @@ public class StructureTerrain {
         }
     }
 
-    private static boolean intersects(MutableBoundingBox chunk, MutableBoundingBox structure, MutableBoundingBox util, int radius) {
+    private static boolean intersects(BlockBox chunk, BlockBox structure, BlockBox util, int radius) {
         expand(structure, util, radius);
-        return chunk.intersectsWith(util);
+        return chunk.intersects(util);
     }
 
-    private static void expand(MutableBoundingBox src, MutableBoundingBox dest, int radius) {
+    private static void expand(BlockBox src, BlockBox dest, int radius) {
         dest.minY = src.minY;
         dest.maxY = src.maxY;
         dest.minX = src.minX - radius;
@@ -194,30 +194,30 @@ public class StructureTerrain {
         dest.maxZ = src.maxZ + radius;
     }
 
-    private static float raise(MutableBoundingBox bounds, BlockPos.Mutable pos, float level, float surface, int borderRadius) {
+    private static float raise(BlockBox bounds, BlockPos.Mutable pos, float level, float surface, int borderRadius) {
         float radius2 = Math.max(1, borderRadius * borderRadius);
         float distAlpha = 1 - getDistAlpha(pos.getX(), pos.getZ(), bounds, radius2);
         float alpha = NoiseUtil.pow(distAlpha, 2F - distAlpha);
         return NoiseUtil.lerp(surface, level, alpha);
     }
 
-    private static float getCenterDistance(int x, int z, MutableBoundingBox bounds) {
+    private static float getCenterDistance(int x, int z, BlockBox bounds) {
         return (float) Math.sqrt(getCenterDistance2(x, z, bounds));
     }
 
-    private static float getCenterDistance2(int x, int z, MutableBoundingBox bounds) {
-        float cx = bounds.minX + (bounds.getXSize() / 2F);
-        float cz = bounds.minZ + (bounds.getZSize() / 2F);
+    private static float getCenterDistance2(int x, int z, BlockBox bounds) {
+        float cx = bounds.minX + (bounds.getBlockCountX() / 2F);
+        float cz = bounds.minZ + (bounds.getBlockCountZ() / 2F);
         float dx = cx - x;
         float dz = cz - z;
         return dx * dx + dz * dz;
     }
 
     private static void collectPiece(StructurePiece structurepiece, List<StructurePiece> list) {
-        if (structurepiece instanceof AbstractVillagePiece) {
-            AbstractVillagePiece piece = (AbstractVillagePiece) structurepiece;
-            JigsawPattern.PlacementBehaviour placement = piece.getJigsawPiece().getPlacementBehaviour();
-            if (placement == JigsawPattern.PlacementBehaviour.RIGID) {
+        if (structurepiece instanceof PoolStructurePiece) {
+            PoolStructurePiece piece = (PoolStructurePiece) structurepiece;
+            StructurePool.Projection placement = piece.getPoolElement().getProjection();
+            if (placement == StructurePool.Projection.RIGID) {
                 list.add(piece);
             }
         } else {
@@ -226,13 +226,13 @@ public class StructureTerrain {
     }
 
     private static int getGroundLevelDelta(StructurePiece piece) {
-        if (piece instanceof AbstractVillagePiece) {
-            return ((AbstractVillagePiece) piece).getGroundLevelDelta();
+        if (piece instanceof PoolStructurePiece) {
+            return ((PoolStructurePiece) piece).getGroundLevelDelta();
         }
         return 0;
     }
 
-    private static float getDistAlpha(int x, int z, MutableBoundingBox box, float radius2) {
+    private static float getDistAlpha(int x, int z, BlockBox box, float radius2) {
         int dx = x < box.minX ? box.minX - x : x > box.maxX ? x - box.maxX : 0;
         int dz = z < box.minZ ? box.minZ - z : z > box.maxZ ? z - box.maxZ : 0;
         int d2 = dx * dx + dz * dz;
@@ -245,15 +245,15 @@ public class StructureTerrain {
         return d2 / radius2;
     }
 
-    private static MutableBoundingBox assignChunk(MutableBoundingBox box, int startX, int startZ) {
+    private static BlockBox assignChunk(BlockBox box, int startX, int startZ) {
         return assign2D(box, startX, startZ, startX + 15, startZ + 15);
     }
 
-    private static MutableBoundingBox assign2D(MutableBoundingBox box, int x1, int z1, int x2, int z2) {
+    private static BlockBox assign2D(BlockBox box, int x1, int z1, int x2, int z2) {
         return assign(box, x1, 0, z1, x2, 255, z2);
     }
 
-    private static MutableBoundingBox assign(MutableBoundingBox box, int x1, int y1, int z1, int x2, int y2, int z2) {
+    private static BlockBox assign(BlockBox box, int x1, int y1, int z1, int x2, int y2, int z2) {
         box.minX = x1;
         box.maxX = x2;
         box.minY = y1;
@@ -263,7 +263,7 @@ public class StructureTerrain {
         return box;
     }
 
-    private static List<Structure<?>> getTerrainFitStructures() {
-        return Structure.field_236384_t_;
+    private static List<StructureFeature<?>> getTerrainFitStructures() {
+        return StructureFeature.JIGSAW_STRUCTURES;
     }
 }

@@ -24,18 +24,19 @@
 
 package com.terraforged.mod.client.gui.screen;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
 import com.terraforged.mod.LevelType;
 import com.terraforged.mod.Log;
 import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.mod.client.gui.GuiKeys;
 import com.terraforged.mod.client.gui.screen.overlay.OverlayScreen;
 import com.terraforged.mod.client.gui.screen.preview.PreviewPage;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screen.CreateWorldScreen;
-import net.minecraft.client.gui.widget.button.Button;
-import net.minecraft.util.registry.DynamicRegistries;
-import net.minecraft.world.gen.settings.DimensionGeneratorSettings;
+import com.terraforged.mod.mixin.access.MoreOptionsDialogAccess;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.world.CreateWorldScreen;
+import net.minecraft.client.gui.widget.ButtonWidget;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.util.registry.DynamicRegistryManager;
+import net.minecraft.world.gen.GeneratorOptions;
 
 public class DemoScreen extends OverlayScreen {
 
@@ -43,15 +44,15 @@ public class DemoScreen extends OverlayScreen {
     public static final String LOGS = "";
 
     private final CreateWorldScreen parent;
-    private final DimensionGeneratorSettings inputSettings;
+    private final GeneratorOptions inputSettings;
 
     private final Instance instance;
     private final PreviewPage preview;
-    private final String message = "TF-" + TerraForgedMod.getVersion() + " | Settings not available in this version!";
+    private final String message = "TF-" + 0 + " | Settings not available in this version!";
 
-    private DimensionGeneratorSettings outputSettings;
+    private GeneratorOptions outputSettings;
 
-    public DemoScreen(CreateWorldScreen parent, DimensionGeneratorSettings settings) {
+    public DemoScreen(CreateWorldScreen parent, GeneratorOptions settings) {
         this.parent = parent;
         this.inputSettings = settings;
         this.outputSettings = settings;
@@ -70,16 +71,16 @@ public class DemoScreen extends OverlayScreen {
         int buttonsRow = height - 25;
 
         // -52
-        addButton(new Button(buttonsCenter - buttonWidth - buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.CANCEL.getText(), b -> closeScreen()));
+        addButton(new ButtonWidget(buttonsCenter - buttonWidth - buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.CANCEL.getText(), b -> onClose()));
 
         // +2
-        addButton(new Button(buttonsCenter + buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.DONE.getText(), b -> {
+        addButton(new ButtonWidget(buttonsCenter + buttonPad, buttonsRow, buttonWidth, buttonHeight, GuiKeys.DONE.getText(), b -> {
             Log.debug("Updating generator settings...");
-            DynamicRegistries registries = parent.field_238934_c_.func_239055_b_();
+            DynamicRegistryManager.Impl registries = parent.moreOptionsDialog.method_29700();
             outputSettings = LevelType.updateOverworld(inputSettings, registries, instance.settings);
             Log.debug("Updating seed...");
             ConfigScreen.setSeed(parent, preview.getSeed());
-            closeScreen();
+            onClose();
         }));
     }
 
@@ -87,10 +88,10 @@ public class DemoScreen extends OverlayScreen {
     public void render(MatrixStack matrixStack, int mouseX, int mouseY, float partialTicks) {
         preview.visit(pane -> pane.render(matrixStack, mouseX, mouseY, partialTicks));
         super.render(matrixStack, mouseX, mouseY, partialTicks);
-        if (minecraft == null) {
+        if (client == null) {
             return;
         }
-        minecraft.fontRenderer.drawString(matrixStack, message, 5, 10, MESSAGE_COLOR);
+        client.textRenderer.draw(matrixStack, message, 5, 10, MESSAGE_COLOR);
     }
 
     @Override
@@ -114,10 +115,10 @@ public class DemoScreen extends OverlayScreen {
     }
 
     @Override
-    public void closeScreen() {
+    public void onClose() {
         Log.debug("Returning to parent screen");
         preview.close();
-        Minecraft.getInstance().displayGuiScreen(parent);
-        parent.field_238934_c_.func_239043_a_(outputSettings);
+        MinecraftClient.getInstance().openScreen(parent);
+        ((MoreOptionsDialogAccess) parent.moreOptionsDialog).invokeSetGeneratorOptions(outputSettings);
     }
 }

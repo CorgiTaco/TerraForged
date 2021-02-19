@@ -29,11 +29,11 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.Dynamic;
 import com.mojang.serialization.DynamicOps;
 import com.terraforged.mod.featuremanager.util.codec.Codecs;
-import net.minecraft.world.gen.feature.IFeatureConfig;
+import net.minecraft.world.gen.feature.FeatureConfig;
 
 import java.util.List;
 
-public class ContextSelectorConfig implements IFeatureConfig {
+public class ContextSelectorConfig implements FeatureConfig {
 
     public static final Codec<ContextSelectorConfig> CODEC = Codecs.create(
             ContextSelectorConfig::serialize,

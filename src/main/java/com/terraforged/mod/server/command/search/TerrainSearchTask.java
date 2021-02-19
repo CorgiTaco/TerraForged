@@ -35,7 +35,7 @@ import com.terraforged.mod.server.command.search.condition.TerrainConditions;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
 
 public class TerrainSearchTask extends ChunkGeneratorSearch {
 
@@ -83,7 +83,7 @@ public class TerrainSearchTask extends ChunkGeneratorSearch {
     public BlockPos success(BlockPos.Mutable pos) {
         int x = PosUtil.unpackLeft(result);
         int z = PosUtil.unpackRight(result);
-        return super.success(pos.setPos(x, pos.getY(), z));
+        return super.success(pos.set(x, pos.getY(), z));
     }
 
     @Override

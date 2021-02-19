@@ -28,7 +28,7 @@ import com.terraforged.engine.world.geology.Stratum;
 import com.terraforged.mod.api.chunk.column.DecoratorContext;
 import com.terraforged.mod.chunk.TFChunkGenerator;
 import net.minecraft.block.BlockState;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class BaseGeoDecorator extends BaseDecorator implements Stratum.Visitor<BlockState, DecoratorContext> {
 
@@ -39,10 +39,10 @@ public class BaseGeoDecorator extends BaseDecorator implements Stratum.Visitor<B
     }
 
     @Override
-    public void decorate(IChunk chunk, DecoratorContext context, int x, int y, int z) {
+    public void decorate(Chunk chunk, DecoratorContext context, int x, int y, int z) {
         y = decorateFluid(chunk, context, x, y, z);
 
-        context.pos.setPos(x, y, z);
+        context.pos.set(x, y, z);
 
         generator.getGeologyManager().getGeology(context.biome)
                 .getStrata(x, z)

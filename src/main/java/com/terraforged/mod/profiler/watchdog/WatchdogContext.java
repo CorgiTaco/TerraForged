@@ -26,7 +26,7 @@ package com.terraforged.mod.profiler.watchdog;
 
 import com.terraforged.engine.concurrent.cache.SafeCloseable;
 import com.terraforged.mod.chunk.TFChunkGenerator;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public interface WatchdogContext extends SafeCloseable {
 
@@ -37,7 +37,7 @@ public interface WatchdogContext extends SafeCloseable {
         }
 
         @Override
-        public boolean set(IChunk chunk, TFChunkGenerator generator, long duration) {
+        public boolean set(Chunk chunk, TFChunkGenerator generator, long duration) {
             return false;
         }
 
@@ -64,7 +64,7 @@ public interface WatchdogContext extends SafeCloseable {
 
     void check(long now);
 
-    boolean set(IChunk chunk, TFChunkGenerator generator, long duration);
+    boolean set(Chunk chunk, TFChunkGenerator generator, long duration);
 
     void pushPhase(String phase);
 

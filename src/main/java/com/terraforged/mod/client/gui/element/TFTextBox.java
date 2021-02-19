@@ -24,12 +24,12 @@
 
 package com.terraforged.mod.client.gui.element;
 
-import com.mojang.blaze3d.matrix.MatrixStack;
-import net.minecraft.client.Minecraft;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.widget.TextFieldWidget;
-import net.minecraft.nbt.CompoundNBT;
-import net.minecraft.nbt.StringNBT;
-import net.minecraft.util.text.StringTextComponent;
+import net.minecraft.client.util.math.MatrixStack;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.text.LiteralText;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -38,7 +38,7 @@ import java.util.function.Predicate;
 public class TFTextBox extends TextFieldWidget implements Element, Consumer<String> {
 
     private final String name;
-    private final CompoundNBT value;
+    private final CompoundTag value;
     private final List<String> tooltip;
 
     private String stringValue = "";
@@ -46,15 +46,15 @@ public class TFTextBox extends TextFieldWidget implements Element, Consumer<Stri
     private Predicate<String> validator = s -> true;
     private Consumer<TFTextBox> callback = t -> {};
 
-    public TFTextBox(String name, CompoundNBT value) {
-        super(Minecraft.getInstance().fontRenderer, 0, 0, 100, 20, new StringTextComponent(Element.getDisplayName(name, value) + ": "));
+    public TFTextBox(String name, CompoundTag value) {
+        super(MinecraftClient.getInstance().textRenderer, 0, 0, 100, 20, new LiteralText(Element.getDisplayName(name, value) + ": "));
         this.name = name;
         this.value = value;
         this.tooltip = Element.getToolTip(name, value);
         this.stringValue = value.getString(name);
         setText(value.getString(name));
-        setResponder(this);
-        setEnabled(true);
+        setChangedListener(this);
+        setEditable(true);
     }
 
     public boolean isValid() {
@@ -71,10 +71,10 @@ public class TFTextBox extends TextFieldWidget implements Element, Consumer<Stri
         // update validity immediately
         if (validator.test(stringValue)) {
             valid = true;
-            setTextColor(14737632);
+            setEditableColor(14737632);
         } else {
             valid = false;
-            setTextColor(0xffff3f30);
+            setEditableColor(0xffff3f30);
         }
     }
 
@@ -90,7 +90,7 @@ public class TFTextBox extends TextFieldWidget implements Element, Consumer<Stri
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOver(mouseX, mouseY)) {
             setFocused(true);
-            setEnabled(true);
+            setEditable(true);
             active = true;
         }
         return super.mouseClicked(mouseX, mouseY, button);
@@ -113,15 +113,15 @@ public class TFTextBox extends TextFieldWidget implements Element, Consumer<Stri
 
     @Override
     public void accept(String text) {
-        value.put(name, StringNBT.valueOf(text));
+        value.put(name, StringTag.of(text));
 
         stringValue = text;
         if (validator.test(text)) {
             valid = true;
-            setTextColor(14737632);
+            setEditableColor(14737632);
         } else {
             valid = false;
-            setTextColor(0xffff3f30);
+            setEditableColor(0xffff3f30);
         }
 
         callback.accept(this);

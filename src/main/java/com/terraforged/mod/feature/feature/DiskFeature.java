@@ -28,29 +28,31 @@ import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.noise.Module;
 import com.terraforged.noise.Source;
 import net.minecraft.block.BlockState;
-import net.minecraft.tags.FluidTags;
+import net.minecraft.tag.FluidTags;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.gen.ChunkGenerator;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.feature.DiskFeatureConfig;
 import net.minecraft.world.gen.feature.Feature;
-import net.minecraft.world.gen.feature.SphereReplaceConfig;
 
 import java.util.Random;
 
-public class DiskFeature extends Feature<SphereReplaceConfig> {
+public class DiskFeature extends Feature<DiskFeatureConfig> {
 
     public static final DiskFeature INSTANCE = new DiskFeature();
 
     private final Module domain = Source.simplex(1, 6, 3);
 
     private DiskFeature() {
-        super(SphereReplaceConfig.field_236516_a_);
-        setRegistryName(TerraForgedMod.MODID, "disk");
+        super(DiskFeatureConfig.CODEC);
+        Registry.register(Registry.FEATURE, new Identifier(TerraForgedMod.MODID, "disk"), this);
     }
 
     @Override
-    public boolean generate(ISeedReader world, ChunkGenerator generator, Random rand, BlockPos pos, SphereReplaceConfig config) {
-        if (!world.getFluidState(pos).isTagged(FluidTags.WATER)) {
+    public boolean generate(StructureWorldAccess world, ChunkGenerator generator, Random rand, BlockPos pos, DiskFeatureConfig config) {
+        if (!world.getFluidState(pos).isIn(FluidTags.WATER)) {
             return false;
         } else {
             int cRadius = 6;
@@ -67,8 +69,8 @@ public class DiskFeature extends Feature<SphereReplaceConfig> {
                     int dz = z - pos.getZ();
                     float rad2 = domain.getValue(x, z) * radius2;
                     if (dx * dx + dz * dz <= rad2) {
-                        for(int y = pos.getY() - ySize; y <= pos.getY() + ySize && y + 1 < generator.getMaxBuildHeight(); ++y) {
-                            blockPos.setPos(x, y, z);
+                        for(int y = pos.getY() - ySize; y <= pos.getY() + ySize && y + 1 < generator.getWorldHeight(); ++y) {
+                            blockPos.set(x, y, z);
                             BlockState current = world.getBlockState(blockPos);
 
                             for(BlockState target : config.targets) {

@@ -25,7 +25,7 @@
 package com.terraforged.mod.api.material.state;
 
 import net.minecraft.block.BlockState;
-import net.minecraft.state.Property;
+import net.minecraft.state.property.Property;
 
 public class ExtendedState<T extends Comparable<T>> extends StateSupplier {
 
@@ -42,7 +42,7 @@ public class ExtendedState<T extends Comparable<T>> extends StateSupplier {
     @Override
     public BlockState get() {
         BlockState state = base.getDefaultState();
-        if (state.hasProperty(property)) {
+        if (state.contains(property)) {
             state = state.with(property, value);
         }
         return state;

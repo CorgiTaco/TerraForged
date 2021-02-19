@@ -47,15 +47,15 @@ import com.terraforged.mod.featuremanager.modifier.Modifier;
 import com.terraforged.mod.featuremanager.template.template.TemplateManager;
 import com.terraforged.mod.featuremanager.transformer.FeatureReplacer;
 import net.minecraft.block.Blocks;
-import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.registry.WorldGenRegistries;
+import net.minecraft.util.Identifier;
+import net.minecraft.util.registry.BuiltinRegistries;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.BiomeKeys;
+import net.minecraft.world.gen.decorator.ChanceDecoratorConfig;
+import net.minecraft.world.gen.decorator.ConfiguredDecorator;
+import net.minecraft.world.gen.decorator.CountExtraDecoratorConfig;
+import net.minecraft.world.gen.decorator.Decorator;
 import net.minecraft.world.gen.feature.*;
-import net.minecraft.world.gen.placement.AtSurfaceWithExtraConfig;
-import net.minecraft.world.gen.placement.ChanceConfig;
-import net.minecraft.world.gen.placement.ConfiguredPlacement;
-import net.minecraft.world.gen.placement.Placement;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -165,13 +165,13 @@ public class Trees {
                 FeatureReplacer.of(context(
                         contextEntry("terraforged:spruce_small", 0.1F, eCntx(0.55F, 0.2F)),
                         contextEntry("terraforged:spruce_large", 0.25F, eCntx(0.3F, 0F))
-                ).withPlacement(poisson(0.25F, 4, 0.3F, 300, 0.6F)))
+                ).decorate(poisson(0.25F, 4, 0.3F, 300, 0.6F)))
         );
     }
 
     private static Modifier<Jsonifiable> flowerForest(TFBiomeContext context) {
         return new Modifier<>(
-                BiomeMatcher.of(context, Biomes.FLOWER_FOREST, ModBiomes.FLOWER_PLAINS),
+                BiomeMatcher.of(context, BiomeKeys.FLOWER_FOREST, ModBiomes.FLOWER_PLAINS),
                 FeatureMatcher.and(Blocks.BIRCH_LOG, Blocks.BIRCH_LEAVES, Blocks.OAK_LOG, Blocks.OAK_LEAVES),
                 FeatureReplacer.of(poisson(
                         0.2F, 8, 0.1F, 500, 0.75F,
@@ -193,7 +193,7 @@ public class Trees {
                         contextEntry("terraforged:birch_forest", 0.2F, eCntx(0.3F, 0F), bCntx(0.05F, 0.2F)),
                         contextEntry("terraforged:birch_small", 0.1F, bCntx(0.25F, 0F)),
                         contextEntry("terraforged:birch_small", 0.1F, eCntx(0.25F, 0.65F))
-                ).withPlacement(poisson(0.25F, 6, 0.25F, 175, 0.9F)))
+                ).decorate(poisson(0.25F, 6, 0.25F, 175, 0.9F)))
         );
     }
 
@@ -293,7 +293,7 @@ public class Trees {
                         contextEntry("terraforged:redwood_large", 0.2F, eCntx(0.25F, 0F), bCntx(0.05F, 0.25F)),
                         contextEntry("terraforged:spruce_large", 0.4F, eCntx(0.35F, 0.15F)),
                         contextEntry("terraforged:spruce_small", 0.2F, eCntx(0.5F, 0.2F))
-                ).withPlacement(poisson(0.3F, 6, 0.3F, 250, 0.75F)))
+                ).decorate(poisson(0.3F, 6, 0.3F, 250, 0.75F)))
         );
     }
 
@@ -309,13 +309,13 @@ public class Trees {
         return new Modifier<>(
                 BiomeMatcher.of(context, "minecraft:snowy_tundra", "minecraft:snowy_taiga_mountains", "minecraft:gravelly_mountains", "minecraft:modified_gravelly_mountains"),
                 FeatureMatcher.and("minecraft:tree", Blocks.SPRUCE_LOG, Blocks.SPRUCE_LEAVES),
-                FeatureReplacer.of(template("terraforged:pine").withPlacement(Placement.CHANCE.configure(new ChanceConfig(80))))
+                FeatureReplacer.of(template("terraforged:pine").decorate(Decorator.CHANCE.configure(new ChanceDecoratorConfig(80))))
         );
     }
 
     private static Modifier<Jsonifiable> willow(TFBiomeContext context) {
         return new Modifier<>(
-                BiomeMatcher.of(context, Biomes.SWAMP, Biomes.SWAMP_HILLS),
+                BiomeMatcher.of(context, BiomeKeys.SWAMP, BiomeKeys.SWAMP_HILLS),
                 FeatureMatcher.and("minecraft:tree", Blocks.OAK_LEAVES, Blocks.OAK_LOG),
                 FeatureReplacer.of(extra(7, 0.1F, 1,
                         "terraforged:willow_large",
@@ -328,8 +328,8 @@ public class Trees {
     @SafeVarargs
     private static ConfiguredFeature<?, ?> extra(int count, float chance, int extra, String def, Pair<String, Float>... entries) {
         return select(def, entries)
-                .withPlacement(Features.Placements.HEIGHTMAP_PLACEMENT)
-                .withPlacement(Placement.COUNT_EXTRA.configure(new AtSurfaceWithExtraConfig(count, chance, extra)));
+                .decorate(ConfiguredFeatures.Decorators.SQUARE_HEIGHTMAP)
+                .decorate(Decorator.COUNT_EXTRA.configure(new CountExtraDecoratorConfig(count, chance, extra)));
     }
 
     @SafeVarargs
@@ -344,16 +344,16 @@ public class Trees {
 
     @SafeVarargs
     private static ConfiguredFeature<?, ?> poisson(FastPoissonConfig config, String def, Pair<String, Float>... entries) {
-        return select(def, entries).withPlacement(poisson(config));
+        return select(def, entries).decorate(poisson(config));
     }
 
-    private static ConfiguredPlacement<?> poisson(float scale, int radius, float fade, int densityScale, float densityVariation) {
+    private static ConfiguredDecorator<?> poisson(float scale, int radius, float fade, int densityScale, float densityVariation) {
         return poisson(new FastPoissonConfig(scale, radius, fade, densityScale, densityVariation));
     }
 
-    private static ConfiguredPlacement<?> poisson(FastPoissonConfig config) {
-        ConfiguredPlacement<?> poisson = FastPoissonAtSurface.INSTANCE.configure(config);
-        Optional<ConfiguredPlacement<?>> filtered = PlacementFilter.decode("biome")
+    private static ConfiguredDecorator<?> poisson(FastPoissonConfig config) {
+        ConfiguredDecorator<?> poisson = FastPoissonAtSurface.INSTANCE.configure(config);
+        Optional<ConfiguredDecorator<?>> filtered = PlacementFilter.decode("biome")
                 .map(f -> FilterDecorator.INSTANCE.configure(new FilterDecoratorConfig(poisson, f)));
         if (filtered.isPresent()) {
             return filtered.get();
@@ -386,19 +386,19 @@ public class Trees {
         if (entries.length == 0) {
             return template(def);
         } else if (entries.length == 1) {
-            return Feature.RANDOM_BOOLEAN_SELECTOR.withConfiguration(new TwoFeatureChoiceConfig(
+            return Feature.RANDOM_BOOLEAN_SELECTOR.configure(new RandomBooleanFeatureConfig(
                     () -> template(def),
                     () -> template(entries[0].getFirst())
             ));
         } else {
-            List<ConfiguredRandomFeatureList> features = new ArrayList<>();
+            List<RandomFeatureEntry> features = new ArrayList<>();
             for (Pair<String, Float> entry : entries) {
-                features.add(new ConfiguredRandomFeatureList(
+                features.add(new RandomFeatureEntry(
                         getFeature(entry.getFirst()),
                         entry.getSecond()
                 ));
             }
-            return Feature.RANDOM_SELECTOR.withConfiguration(new MultipleRandomFeatureConfig(features, template(def)));
+            return Feature.RANDOM_SELECTOR.configure(new RandomFeatureConfig(features, template(def)));
         }
     }
 
@@ -406,14 +406,14 @@ public class Trees {
         if (name.startsWith("terraforged:")) {
             return template(name);
         }
-        return WorldGenRegistries.CONFIGURED_FEATURE.getOptional(new ResourceLocation(name)).orElseThrow(RuntimeException::new);
+        return BuiltinRegistries.CONFIGURED_FEATURE.getOrEmpty(new Identifier(name)).orElseThrow(RuntimeException::new);
     }
 
     private static ConfiguredFeature<?, ?> context(ContextualFeature... features) {
-        return ContextSelectorFeature.INSTANCE.withConfiguration(new ContextSelectorConfig(Arrays.asList(features)));
+        return ContextSelectorFeature.INSTANCE.configure(new ContextSelectorConfig(Arrays.asList(features)));
     }
 
     private static ConfiguredFeature<?, ?> template(String name) {
-        return TerraFeatures.INSTANCE.withConfiguration(TemplateManager.getInstance().getTemplateConfig(new ResourceLocation(name)));
+        return TerraFeatures.INSTANCE.configure(TemplateManager.getInstance().getTemplateConfig(new Identifier(name)));
     }
 }

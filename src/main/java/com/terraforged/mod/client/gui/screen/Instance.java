@@ -26,12 +26,12 @@ package com.terraforged.mod.client.gui.screen;
 
 import com.terraforged.mod.chunk.settings.TerraSettings;
 import com.terraforged.mod.util.DataUtils;
-import net.minecraft.nbt.CompoundNBT;
+import net.minecraft.nbt.CompoundTag;
 
 public class Instance {
 
     public TerraSettings settings = new TerraSettings();
-    public CompoundNBT settingsData = new CompoundNBT();
+    public CompoundTag settingsData = new CompoundTag();
 
     public Instance(TerraSettings settings) {
         sync(settings);

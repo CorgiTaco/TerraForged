@@ -29,10 +29,10 @@ import com.terraforged.mod.api.material.state.States;
 import com.terraforged.mod.material.Materials;
 import net.minecraft.block.BlockState;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.chunk.ChunkPrimer;
-import net.minecraft.world.chunk.IChunk;
-import net.minecraft.world.gen.GenerationStage;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.world.Heightmap;
+import net.minecraft.world.chunk.Chunk;
+import net.minecraft.world.chunk.ProtoChunk;
+import net.minecraft.world.gen.GenerationStep;
 
 import java.util.BitSet;
 
@@ -41,14 +41,14 @@ public class ChunkCarverFix extends ChunkDelegate {
     private final int maskDepth;
     private final Materials materials;
 
-    public ChunkCarverFix(IChunk chunk, Materials materials, boolean nearStructure, boolean nearRiver) {
+    public ChunkCarverFix(Chunk chunk, Materials materials, boolean nearStructure, boolean nearRiver) {
         super(chunk);
         this.materials = materials;
         this.maskDepth = nearRiver ? 15 : nearStructure ? 5 : -1;
     }
 
-    public BitSet getCarvingMask(GenerationStage.Carving type) {
-        return ((ChunkPrimer) delegate).getOrAddCarvingMask(type);
+    public BitSet getCarvingMask(GenerationStep.Carver type) {
+        return ((ProtoChunk) delegate).getOrCreateCarvingMask(type);
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ChunkCarverFix extends ChunkDelegate {
     @Override
     public BlockState setBlockState(BlockPos pos, BlockState state, boolean isMoving) {
         if (maskDepth != -1) {
-            int surface = delegate.getTopBlockY(Heightmap.Type.WORLD_SURFACE, pos.getX(), pos.getZ());
+            int surface = delegate.sampleHeightmap(Heightmap.Type.WORLD_SURFACE, pos.getX(), pos.getZ());
             if (pos.getY() > surface - maskDepth) {
                 return state;
             }

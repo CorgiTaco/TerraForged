@@ -30,15 +30,15 @@ import com.terraforged.engine.world.biome.map.defaults.BiomeTemps;
 import com.terraforged.engine.world.biome.map.defaults.DefaultBiome;
 import com.terraforged.engine.world.biome.map.defaults.DefaultBiomeSelector;
 import com.terraforged.mod.biome.ModBiomes;
-import net.minecraft.util.RegistryKey;
+import net.minecraft.util.registry.RegistryKey;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.biome.Biomes;
+import net.minecraft.world.biome.BiomeKeys;
 
 public class TFDefaultBiomes {
 
     public static final DefaultBiome.Factory<RegistryKey<Biome>> BEACH = context -> new DefaultBiomeSelector(
-            context.getId(Biomes.SNOWY_BEACH),
-            context.getId(Biomes.BEACH),
+            context.getId(BiomeKeys.SNOWY_BEACH),
+            context.getId(BiomeKeys.BEACH),
             context.getId(ModBiomes.WARM_BEACH),
             0.25F,
             0.75F
@@ -53,9 +53,9 @@ public class TFDefaultBiomes {
     );
 
     public static final DefaultBiome.Factory<RegistryKey<Biome>> RIVER = context -> new DefaultBiomeSelector(
-            context.getId(Biomes.FROZEN_RIVER),
-            context.getId(Biomes.RIVER),
-            context.getId(Biomes.RIVER),
+            context.getId(BiomeKeys.FROZEN_RIVER),
+            context.getId(BiomeKeys.RIVER),
+            context.getId(BiomeKeys.RIVER),
             0.15F,
             1F
     );
@@ -71,7 +71,7 @@ public class TFDefaultBiomes {
     public static final DefaultBiome.Factory<RegistryKey<Biome>> WETLAND = context -> new DefaultBiomeSelector(
             context.getId(ModBiomes.COLD_MARSHLAND),
             context.getId(ModBiomes.MARSHLAND),
-            context.getId(Biomes.SWAMP),
+            context.getId(BiomeKeys.SWAMP),
             0.4F,
             1F
     ) {
@@ -90,23 +90,23 @@ public class TFDefaultBiomes {
     };
 
     public static final DefaultBiome.Factory<RegistryKey<Biome>> OCEAN = context -> new DefaultBiomeSelector(
-            context.getId(Biomes.FROZEN_OCEAN),
-            context.getId(Biomes.OCEAN),
-            context.getId(Biomes.WARM_OCEAN),
+            context.getId(BiomeKeys.FROZEN_OCEAN),
+            context.getId(BiomeKeys.OCEAN),
+            context.getId(BiomeKeys.WARM_OCEAN),
             0.15F,
             1F
     );
 
     public static final DefaultBiome.Factory<RegistryKey<Biome>> DEEP_OCEAN = context -> new DefaultBiomeSelector(
-            context.getId(Biomes.DEEP_FROZEN_OCEAN),
-            context.getId(Biomes.DEEP_OCEAN),
-            context.getId(Biomes.DEEP_WARM_OCEAN),
+            context.getId(BiomeKeys.DEEP_FROZEN_OCEAN),
+            context.getId(BiomeKeys.DEEP_OCEAN),
+            context.getId(BiomeKeys.DEEP_WARM_OCEAN),
             0.15F,
             1F
     );
 
     public static final DefaultBiome.Factory<RegistryKey<Biome>> MOUNTAIN = context -> new DefaultBiomeSelector(
-            context.getId(Biomes.SNOWY_MOUNTAINS),
+            context.getId(BiomeKeys.SNOWY_MOUNTAINS),
             BiomeMap.NULL_BIOME,
             BiomeMap.NULL_BIOME,
             0.25F,
@@ -123,7 +123,7 @@ public class TFDefaultBiomes {
 
     public static final DefaultBiome.Factory<RegistryKey<Biome>> LAND = context -> new DefaultBiomeSelector(
             context.getId(ModBiomes.TAIGA_SCRUB),
-            context.getId(Biomes.PLAINS),
+            context.getId(BiomeKeys.PLAINS),
             context.getId(ModBiomes.SAVANNA_SCRUB),
             0.3F,
             1.7F

@@ -27,8 +27,10 @@ package com.terraforged.mod.feature.decorator.poisson;
 import com.terraforged.engine.util.fastpoisson.FastPoisson;
 import com.terraforged.mod.TerraForgedMod;
 import com.terraforged.mod.api.feature.decorator.DecorationContext;
+import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.world.gen.Heightmap;
+import net.minecraft.util.registry.Registry;
+import net.minecraft.world.Heightmap;
 
 import java.util.function.Consumer;
 
@@ -37,13 +39,13 @@ public class FastPoissonAtSurface extends FastPoissonDecorator {
     public static final FastPoissonAtSurface INSTANCE = new FastPoissonAtSurface();
 
     private FastPoissonAtSurface() {
-        setRegistryName(TerraForgedMod.MODID, "fast_poisson_surface");
+        Registry.register(Registry.DECORATOR, new Identifier(TerraForgedMod.MODID, "fast_poisson_surface"), this);
     }
 
     @Override
     protected FastPoisson.Visitor<Consumer<BlockPos>> getVisitor(DecorationContext context) {
         return (x, z, builder) -> {
-            int y = context.getRegion().getHeight(Heightmap.Type.WORLD_SURFACE, x, z);
+            int y = context.getRegion().getTopY(Heightmap.Type.WORLD_SURFACE, x, z);
             builder.accept(new BlockPos(x, y, z));
         };
     }

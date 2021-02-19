@@ -26,31 +26,31 @@ package com.terraforged.mod.feature;
 
 import com.terraforged.mod.api.feature.decorator.DecorationContext;
 import com.terraforged.mod.util.reflect.ReflectUtils;
-import net.minecraft.world.ISeedReader;
-import net.minecraft.world.gen.ChunkGenerator;
-import net.minecraft.world.gen.feature.WorldDecoratingHelper;
+import net.minecraft.world.StructureWorldAccess;
+import net.minecraft.world.gen.chunk.ChunkGenerator;
+import net.minecraft.world.gen.decorator.DecoratorContext;
 
 import java.lang.invoke.MethodHandle;
 
 public class DecorationAccessor {
 
-    private static final MethodHandle WORLD = ReflectUtils.field(WorldDecoratingHelper.class, ISeedReader.class);
-    private static final MethodHandle GENERATOR = ReflectUtils.field(WorldDecoratingHelper.class, ChunkGenerator.class);
+    private static final MethodHandle WORLD = ReflectUtils.field(DecoratorContext.class, StructureWorldAccess.class);
+    private static final MethodHandle GENERATOR = ReflectUtils.field(DecoratorContext.class, ChunkGenerator.class);
 
-    public static DecorationContext getContext(WorldDecoratingHelper helper) {
+    public static DecorationContext getContext(DecoratorContext helper) {
         return DecorationContext.of(getWorld(helper), getGenerator(helper));
     }
 
-    public static ISeedReader getWorld(WorldDecoratingHelper helper) {
+    public static StructureWorldAccess getWorld(DecoratorContext helper) {
         try {
-            return (ISeedReader) WORLD.invokeExact(helper);
+            return (StructureWorldAccess) WORLD.invokeExact(helper);
         } catch (Throwable t) {
             t.printStackTrace();
             return null;
         }
     }
 
-    public static ChunkGenerator getGenerator(WorldDecoratingHelper helper) {
+    public static ChunkGenerator getGenerator(DecoratorContext helper) {
         try {
             return (ChunkGenerator) GENERATOR.invokeExact(helper);
         } catch (Throwable t) {

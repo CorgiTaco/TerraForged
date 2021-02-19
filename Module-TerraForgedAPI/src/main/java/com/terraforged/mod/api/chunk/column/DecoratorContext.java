@@ -24,15 +24,15 @@
 
 package com.terraforged.mod.api.chunk.column;
 
-import com.terraforged.mod.api.chunk.ChunkContext;
 import com.terraforged.engine.cell.Cell;
 import com.terraforged.engine.concurrent.Resource;
 import com.terraforged.engine.world.climate.Climate;
 import com.terraforged.engine.world.geology.DepthBuffer;
 import com.terraforged.engine.world.heightmap.Levels;
+import com.terraforged.mod.api.chunk.ChunkContext;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.biome.Biome;
-import net.minecraft.world.chunk.IChunk;
+import net.minecraft.world.chunk.Chunk;
 
 public class DecoratorContext extends ChunkContext implements AutoCloseable {
 
@@ -44,11 +44,11 @@ public class DecoratorContext extends ChunkContext implements AutoCloseable {
     public Biome biome;
     public Cell cell;
 
-    public DecoratorContext(IChunk chunk, Levels levels, Climate climate) {
+    public DecoratorContext(Chunk chunk, Levels levels, Climate climate) {
         this(chunk, levels, climate, true);
     }
 
-    public DecoratorContext(IChunk chunk, Levels levels, Climate climate, boolean depthBuffer) {
+    public DecoratorContext(Chunk chunk, Levels levels, Climate climate, boolean depthBuffer) {
         super(chunk);
         this.levels = levels;
         this.climate = climate;
